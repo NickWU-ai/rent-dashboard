@@ -3,22 +3,25 @@
 <head>
     <title>物業資產財務管理系統 🏢</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { background-color: #f8fafc; font-family: sans-serif; padding: 40px; color: #1e293b; }
+        body { background-color: #f8fafc; font-family: sans-serif; padding: 40px; color: #1e293b; margin: 0; }
         .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         h1 { color: #0f172a; margin: 0; font-size: 28px; }
         .subtitle { color: #64748b; font-size: 14px; margin-top: 5px; }
-        .btn { padding: 10px 20px; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; border: none; }
+        .btn { padding: 10px 20px; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; border: none; transition: background 0.2s; }
         .btn-primary { background-color: #2563eb; color: white; }
         .group-section { background-color: #ffffff; border-radius: 16px; padding: 25px; margin-bottom: 30px; border: 1px solid #e2e8f0; }
         .group-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px; }
         .group-title { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin: 0; }
         .group-edit-btn { background: none; border: none; color: #2563eb; cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
         .group-edit-btn:hover { background-color: #eff6ff; }
-        .card-container { display: flex; flex-wrap: wrap; gap: 20px; }
+        
+        /* RWD 彈性網格佈局 */
+        .card-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
         
         /* 房源卡片與到期警告樣式 */
-        .room-card { background-color: #f8fafc; border-radius: 12px; padding: 20px; width: 340px; position: relative; border: 1px solid #e2e8f0; transition: all 0.2s; }
+        .room-card { background-color: #f8fafc; border-radius: 12px; padding: 20px; position: relative; border: 1px solid #e2e8f0; transition: all 0.2s; box-sizing: border-box; }
         .room-card.expiry-warning { border: 2px solid #f97316 !important; background-color: #fff7ed !important; }
         .expiry-badge { background-color: #ffedd5; color: #ea580c; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 6px; display: inline-block; border: 1px solid #fed7aa; }
         
@@ -54,6 +57,24 @@
         #sync-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); display: none; justify-content: center; align-items: center; font-size: 22px; font-weight: bold; color: #2563eb; z-index: 9999; flex-direction: column; gap: 15px; }
         .spinner { border: 4px solid #e2e8f0; border-top: 4px solid #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* 📱 手機版 RWD 覆蓋樣式 */
+        @media (max-width: 768px) {
+            body { padding: 15px; }
+            .header-container { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .header-container div:last-child { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+            .btn { flex: 1 1 45%; text-align: center; padding: 12px 10px; font-size: 13px; }
+            .top-grid { grid-template-columns: 1fr !important; gap: 15px; }
+            .top-grid > div { height: auto !important; }
+            .toolbar-container { flex-direction: column; align-items: stretch !important; gap: 12px; }
+            .toolbar-container div { width: 100%; }
+            .toolbar-container select { width: 100%; box-sizing: border-box; }
+            .toolbar-container button { width: 100%; }
+            .card-container { grid-template-columns: 1fr !important; }
+            .modal-box { width: 95%; padding: 20px; }
+            .form-row-grid { grid-template-columns: 1fr; gap: 0; }
+            .status-badge { padding: 6px 10px; font-size: 12px; } /* 增大手機點擊範圍 */
+        }
     </style>
 </head>
 <body>
@@ -74,14 +95,14 @@
             <div class="subtitle" id="connection-status">🟢 系統載入中...</div>
         </div>
         <div>
-            <button class="btn" style="background-color: #64748b; color: white; margin-right: 10px;" onclick="forceDownloadFromCloud()">🔄 雲端同步</button>
-            <button class="btn" style="background-color: #f59e0b; color: white; margin-right: 10px;" onclick="downloadBackup()">📥 下載備份</button>
+            <button class="btn" style="background-color: #64748b; color: white;" onclick="forceDownloadFromCloud()">🔄 雲端同步</button>
+            <button class="btn" style="background-color: #f59e0b; color: white;" onclick="downloadBackup()">📥 下載備份</button>
             <button class="btn btn-primary" onclick="openGroupModal()">＋ 新增社區</button>
             <button class="btn btn-primary" style="background-color: #10b981;" onclick="openRoomModal()">＋ 新增房源</button>
         </div>
     </div>
     
-    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin-bottom: 25px;">
+    <div class="top-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin-bottom: 25px;">
         <div id="dashboard-zone" style="display: grid; grid-template-columns: 1fr; gap: 12px;"></div>
         <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; height: 230px; box-sizing: border-box;">
             <div style="font-size: 13px; color: #64748b; font-weight: 600; margin-bottom: 10px;">📊 年度歷史實收租金趨勢</div>
@@ -91,7 +112,7 @@
         </div>
     </div>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: white; padding: 15px 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
+    <div class="toolbar-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: white; padding: 15px 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <span style="font-size: 14px; font-weight: 600; color: #475569;">🔍 房源動態篩選：</span>
             <select id="filterSelect" onchange="handleFilterChange(this.value)" style="padding: 8px 16px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px; background: #f8fafc; color:#1e293b; font-weight:600;">
@@ -138,7 +159,7 @@
             <div class="form-row-grid">
                 <div class="form-group">
                     <label>租客姓名</label>
-                    <input type="text" id="inputTenant" placeholder="例如：林小華">
+                    <input type="text" id="inputTenant" placeholder="Example: 林小華">
                 </div>
                 <div class="form-group">
                     <label>租合約期</label>
@@ -155,8 +176,8 @@
                 <div class="custom-item-box" style="background-color: #f0fdf4; border-color: #bbf7d0; margin-bottom: 10px;">
                     <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 0.8fr; gap: 6px; margin-bottom: 8px;">
                         <input type="text" id="calcName" value="電費" style="padding:6px;">
-                        <input type="number" id="calcPrev" placeholder="上次度數" style="padding:6px;">
-                        <input type="number" id="calcCurr" placeholder="本次度數" style="padding:6px;">
+                        <input type="number" id="calcPrev" placeholder="上次" style="padding:6px;">
+                        <input type="number" id="calcCurr" placeholder="本次" style="padding:6px;">
                         <input type="number" id="calcRate" value="5" placeholder="單價" style="padding:6px;">
                     </div>
                     <button class="btn" style="background-color: #16a34a; color: white; width: 100%; padding: 6px; font-size: 12px; font-weight: bold; border-radius: 4px;" onclick="calculateUtility()">🧮 計算並匯入下方項目</button>
@@ -225,7 +246,7 @@
             fetch(`${CLOUD_API_URL}?t=${Date.now()}`)
                 .then(res => res.json())
                 .then(cloudJson => {
-                    if (cloudJson && Object.keys(cloudJson).length > 0) {
+                    if (cloudJson && Array.isArray(cloudJson) && cloudJson.length > 0) {
                         myData = cloudJson;
                         localStorage.setItem("date_driven_landlord_data", JSON.stringify(myData));
                         renderDashboard(false);
@@ -238,20 +259,31 @@
             document.getElementById("connection-status").innerText = "🟢 本機資料就緒";
         }
 
+        // 優化功能：LocalStorage 防呆同步機制
         function forceDownloadFromCloud() {
             if(!confirm("⚠️ 確定要從雲端下載最新資料覆蓋目前畫面嗎？")) return;
+            
+            // 防呆 1：覆蓋前自動將目前本機資料存入安全備份區，以防手殘覆蓋錯誤
+            let currentLocalRaw = localStorage.getItem("date_driven_landlord_data");
+            if (currentLocalRaw) {
+                localStorage.setItem("date_driven_landlord_data_safety_snapshot", currentLocalRaw);
+            }
+
             document.getElementById("sync-overlay").style.display = "flex";
             document.getElementById("sync-overlay-text").innerText = "⬇️ 從雲端下載中...";
             fetch(`${CLOUD_API_URL}?t=${Date.now()}`)
                 .then(res => res.json())
                 .then(cloudJson => {
-                    if (cloudJson && Object.keys(cloudJson).length > 0) {
+                    // 防呆 2：結構檢驗，確保雲端回傳的是合理的陣列，防止因網路異常拿到空值而洗掉資料
+                    if (cloudJson && Array.isArray(cloudJson)) {
                         myData = cloudJson;
                         localStorage.setItem("date_driven_landlord_data", JSON.stringify(myData));
                         renderDashboard(false);
-                        alert("✅ 同步完成！");
-                    } else { alert("⚠️ 雲端無資料。"); }
-                }).catch(() => alert("❌ 下載失敗"))
+                        alert("✅ 同步完成！已成功覆蓋更新。\n（系統已自動為您保留前一版本地快照以策安全）");
+                    } else { 
+                        alert("⚠️ 攔截警告：雲端回傳資料不完整，已拒絕覆蓋本地資料庫！"); 
+                    }
+                }).catch(() => alert("❌ 下載失敗，請檢查網路連線。"))
                 .finally(() => document.getElementById("sync-overlay").style.display = "none");
         }
 
@@ -269,6 +301,7 @@
         function saveToCloud() {
             let overlay = document.getElementById("sync-overlay");
             if(overlay) overlay.style.display = "flex";
+            
             let currentJson = JSON.stringify(myData);
             localStorage.setItem("date_driven_landlord_data", currentJson);
             document.getElementById("formJsonField").value = currentJson;
@@ -317,13 +350,11 @@
             alert(`✅ 已匯入：${degrees}度共 $${total.toLocaleString()} 元。`);
         }
 
-        // 功能 1：篩選切換
         function handleFilterChange(val) {
             currentFilter = val;
             renderDashboard(false);
         }
 
-        // 功能 2：匯出報表（整合 BOM 避免 Excel 開啟亂碼）
         function exportToCSV() {
             if (!myData.length) return alert("目前沒有資料可供匯出！");
             let today = new Date();
@@ -346,7 +377,6 @@
             a.click();
         }
 
-        // 功能 3：專屬修繕紀錄簿
         function addRepairLog(gIdx, rIdx) {
             let input = prompt("🛠️ 新增修繕與事件紀錄\n請輸入格式：『項目名稱,金額』\n例如：修洗臉盆,1200\n(日期會自動帶入今天)");
             if (!input) return;
@@ -370,7 +400,6 @@
             }
         }
 
-        // 功能 4：Chart.js 渲染與動態更新
         function drawChart() {
             let monthlyCashflow = Array(12).fill(0);
             myData.forEach(g => g.rooms.forEach(r => r.bills.forEach(b => {
@@ -424,7 +453,6 @@
                 return;
             }
 
-            // 指標計算
             let dashExpected = 0, dashPaid = 0, dashUnpaid = 0;
             myData.forEach(g => g.rooms.forEach(r => r.bills.forEach(b => {
                 if (b.name === `${curM} 總應收`) {
@@ -438,19 +466,18 @@
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; height: 100%;">
                     <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #2563eb; display:flex; flex-direction:column; justify-content:center;">
                         <div style="font-size: 11px; color: #64748b; font-weight: 600;">本月 (${curM}) 預期應收</div>
-                        <div style="font-size: 20px; font-weight: 700; color: #0f172a; margin-top: 4px;">$${dashExpected.toLocaleString()}</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 4px;">$${dashExpected.toLocaleString()}</div>
                     </div>
                     <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #10b981; display:flex; flex-direction:column; justify-content:center;">
                         <div style="font-size: 11px; color: #64748b; font-weight: 600;">本月 (${curM}) 實收入帳</div>
-                        <div style="font-size: 20px; font-weight: 700; color: #166534; margin-top: 4px;">$${dashPaid.toLocaleString()}</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #166534; margin-top: 4px;">$${dashPaid.toLocaleString()}</div>
                     </div>
                     <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #ef4444; display:flex; flex-direction:column; justify-content:center;">
                         <div style="font-size: 11px; color: #64748b; font-weight: 600;">本月 (${curM}) 剩餘待繳</div>
-                        <div style="font-size: 20px; font-weight: 700; color: #991b1b; margin-top: 4px;">$${dashUnpaid.toLocaleString()}</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #991b1b; margin-top: 4px;">$${dashUnpaid.toLocaleString()}</div>
                     </div>
                 </div>`;
 
-            // 卡片渲染與動態篩選
             groupZone.innerHTML = myData.map((group, gIdx) => {
                 let filteredRooms = group.rooms.filter(room => {
                     if (currentFilter === 'unpaid') {
@@ -490,8 +517,6 @@
                             });
 
                             let expiry = checkLeaseExpiry(room.rentPeriod);
-                            
-                            // 修繕紀錄 HTML
                             let repairsHTML = (room.repairs || []).map((rep, repIdx) => `
                                 <div style="display:flex; justify-content:space-between; font-size:11px; background:#f1f5f9; padding:4px 6px; border-radius:4px; margin-bottom:4px; color:#475569;">
                                     <span>🛠️ ${rep.date} ${rep.name} (<strong>$${rep.cost.toLocaleString()}</strong>)</span>
@@ -651,7 +676,6 @@
                 bills.push({ name: `M${m} 總應收`, amount: monthlyTotal, paidDate: oldDate });
             }
 
-            // 確保修繕紀錄與既有欄位在編輯時不會丟失
             let repairs = isEdit ? (myData[oldGIdx].rooms[oldRIdx].repairs || []) : [];
             let roomObj = { number: num, tenant, rentPeriod: period, memo, rent, deposit, manage, parking, pet, customTotal, details, bills, repairs };
 
