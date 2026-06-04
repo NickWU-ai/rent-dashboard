@@ -4,7 +4,7 @@
     <title>物業資產財務管理系統 🏢</title>
     <style>
         body { background-color: #f8fafc; font-family: sans-serif; padding: 40px; color: #1e293b; }
-        .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; }
+        .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         h1 { color: #0f172a; margin: 0; font-size: 28px; }
         .subtitle { color: #64748b; font-size: 14px; margin-top: 5px; }
         .btn { padding: 10px 20px; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; border: none; }
@@ -15,7 +15,12 @@
         .group-edit-btn { background: none; border: none; color: #2563eb; cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
         .group-edit-btn:hover { background-color: #eff6ff; }
         .card-container { display: flex; flex-wrap: wrap; gap: 20px; }
-        .room-card { background-color: #f8fafc; border-radius: 12px; padding: 20px; width: 340px; position: relative; border: 1px solid #e2e8f0; }
+        
+        /* 房源卡片與到期警告樣式 */
+        .room-card { background-color: #f8fafc; border-radius: 12px; padding: 20px; width: 340px; position: relative; border: 1px solid #e2e8f0; transition: all 0.2s; }
+        .room-card.expiry-warning { border: 2px solid #f97316 !important; background-color: #fff7ed !important; }
+        .expiry-badge { background-color: #ffedd5; color: #ea580c; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 6px; display: inline-block; border: 1px solid #fed7aa; }
+        
         .card-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; }
         .action-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px; }
         .delete-btn { color: #ef4444; }
@@ -29,11 +34,13 @@
         .bill-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; background: #f8fafc; padding: 6px; border-radius: 6px; }
         .extra-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; background: #eff6ff; padding: 7px 10px; border-radius: 6px; border: 1px solid #bfdbfe; color: #1e40af; }
         .memo-text { font-size: 11px; color: #64748b; padding-left: 20px; line-height: 1.4; margin: 0 0 10px 0; }
-        .status-badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; user-select: none; text-align: center; min-width: 45px; }
+        
+        .status-badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; user-select: none; text-align: center; min-width: 45px; display: inline-block; }
         .status-paid { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
         .status-unpaid { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.6); display: flex; justify-content: center; align-items: center; display: none; z-index: 1000; }
-        .modal-box { background-color: white; padding: 30px; border-radius: 16px; width: 450px; max-height: 90vh; overflow-y: auto; }
+        .modal-box { background-color: white; padding: 30px; border-radius: 16px; width: 460px; max-height: 90vh; overflow-y: auto; }
         .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
         .form-group { margin-bottom: 14px; }
         .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
@@ -72,6 +79,8 @@
             <button class="btn btn-primary" style="background-color: #10b981;" onclick="openRoomModal()">＋ 新增房源</button>
         </div>
     </div>
+    
+    <div id="dashboard-zone"></div>
     
     <div id="group-zone"></div>
 
@@ -119,6 +128,20 @@
                 <label>📝 房源備註事項</label>
                 <input type="text" id="inputMemo" placeholder="例如：冷氣剛換新、車位在B2...">
             </div>
+
+            <div class="form-group">
+                <label>⚡ 獨立水電費計算機 (自動匯入臨時特殊月費)</label>
+                <div class="custom-item-box" style="background-color: #f0fdf4; border-color: #bbf7d0; margin-bottom: 10px;">
+                    <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 0.8fr; gap: 6px; margin-bottom: 8px;">
+                        <input type="text" id="calcName" value="電費" style="padding:6px;">
+                        <input type="number" id="calcPrev" placeholder="上次度數" style="padding:6px;">
+                        <input type="number" id="calcCurr" placeholder="本次度數" style="padding:6px;">
+                        <input type="number" id="calcRate" value="5" placeholder="單價" style="padding:6px;">
+                    </div>
+                    <button class="btn" style="background-color: #16a34a; color: white; width: 100%; padding: 6px; font-size: 12px; font-weight: bold; border-radius: 4px;" onclick="calculateUtility()">🧮 計算並匯入下方項目</button>
+                </div>
+            </div>
+
             <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 15px 0;">
             <div class="form-row-grid">
                 <div class="form-group">
@@ -167,7 +190,6 @@
         let myData = [];
         let tempCustomBills = [];
 
-        // 初始化資料載入
         try {
             let localData = localStorage.getItem("date_driven_landlord_data");
             if (localData && localData !== "[]" && localData !== "undefined") myData = JSON.parse(localData);
@@ -193,12 +215,10 @@
             document.getElementById("connection-status").innerText = "🟢 本機資料就緒";
         }
 
-        // 雲端同步與備份
         function forceDownloadFromCloud() {
             if(!confirm("⚠️ 確定要從雲端下載最新資料覆蓋目前畫面嗎？")) return;
             document.getElementById("sync-overlay").style.display = "flex";
             document.getElementById("sync-overlay-text").innerText = "⬇️ 從雲端下載中...";
-
             fetch(`${CLOUD_API_URL}?t=${Date.now()}`)
                 .then(res => res.json())
                 .then(cloudJson => {
@@ -208,9 +228,7 @@
                         renderDashboard(false);
                         alert("✅ 同步完成！");
                     } else { alert("⚠️ 雲端無資料。"); }
-                })
-                .catch(() => alert("❌ 下載失敗"))
-                .finally(() => document.getElementById("sync-overlay").style.display = "none");
+                }).catch(() => alert("❌ 下載失敗")).finally(() => document.getElementById("sync-overlay").style.display = "none");
         }
 
         function downloadBackup() {
@@ -234,10 +252,67 @@
             setTimeout(() => { if(overlay) overlay.style.display = "none"; }, 2500);
         }
 
-        // 🌟 精簡核心：使用反引號樣板字串渲染畫面
+        // 功能 2：一鍵複製 Line 催繳訊息
+        function copyLineMessage(tenant, roomNum, billName, amount) {
+            let msg = `${tenant}您好，提醒您：您 ${roomNum} 室的 ${billName} 共計 $${amount.toLocaleString()} 元尚未入帳。若已匯款請忽略此訊息並提供帳號後五碼供核對，謝謝！`;
+            navigator.clipboard.writeText(msg).then(() => {
+                alert(`📋 【${tenant}】的催繳訊息已成功複製！\n\n請直接打開 Line 貼上傳送即可。`);
+            }).catch(() => alert("複製失敗，瀏覽器不支援，訊息內容：\n" + msg));
+        }
+
+        // 功能 4：租約到期自動化精準算日比對器
+        function checkLeaseExpiry(periodStr) {
+            if (!periodStr || !periodStr.includes("~")) return { warning: false, text: "" };
+            try {
+                let parts = periodStr.split("~");
+                let endPart = parts[1].trim(); 
+                let endYM = endPart.split("/");
+                let endYear = parseInt(endYM[0]);
+                let endMonth = parseInt(endYM[1]) - 1;
+                let endDate = new Date(endYear, endMonth + 1, 0); 
+                
+                let today = new Date();
+                let timeDiff = endDate.getTime() - today.getTime();
+                let daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                
+                if (daysDiff < 0) return { warning: true, text: "⚠️ 租約已過期！" };
+                if (daysDiff <= 45) return { warning: true, text: `⚠️ 租約剩 ${daysDiff} 天到期` };
+            } catch(e) {}
+            return { warning: false, text: "" };
+        }
+
+        // 功能 3：水電計算邏輯
+        function calculateUtility() {
+            let name = document.getElementById("calcName").value || "電費";
+            let prev = document.getElementById("calcPrev").value;
+            let curr = document.getElementById("calcCurr").value;
+            let rate = Number(document.getElementById("calcRate").value) || 5;
+
+            if (prev === "" || curr === "") return alert("請輸入上次與本次的完整度數！");
+            let pNum = Number(prev), cNum = Number(curr);
+            if (cNum < pNum) return alert("本次度數不能小於上次度數喔！");
+
+            let degrees = cNum - pNum;
+            let total = degrees * rate;
+
+            tempCustomBills.push({ name: `${name}(${degrees}度,${pNum}→${cNum})`, amount: total });
+            document.getElementById("customListVisual").innerHTML = tempCustomBills.map(item => `<li>${item.name}: (每月 +${item.amount.toLocaleString()})</li>`).join("");
+            
+            document.getElementById("calcPrev").value = "";
+            document.getElementById("calcCurr").value = "";
+            alert(`✅ 已成功計算！${degrees} 度共 $${total.toLocaleString()} 元，已加入下方特殊月費清單。`);
+        }
+
         function renderDashboard(triggerSave = true) {
             let groupZone = document.getElementById("group-zone");
+            let dashZone = document.getElementById("dashboard-zone");
+            
+            // 動態抓取本月月份標籤 (例如：M06)
+            let today = new Date();
+            let curM = "M" + String(today.getMonth() + 1).padStart(2, '0');
+
             if (!myData.length) {
+                dashZone.innerHTML = "";
                 groupZone.innerHTML = `
                     <div style="text-align:center; padding:60px; color:#64748b; background:white; border-radius:16px; border:1px dashed #cbd5e1; margin-top:20px;">
                         <p style="font-size:18px; margin-bottom:12px;">👋 歡迎使用！目前系統資料庫是清空狀態。</p>
@@ -246,6 +321,34 @@
                 return;
             }
 
+            // 功能 1：動態計算本月財務指標
+            let dashExpected = 0, dashPaid = 0, dashUnpaid = 0;
+            myData.forEach(g => g.rooms.forEach(r => r.bills.forEach(b => {
+                if (b.name === `${curM} 總應收`) {
+                    dashExpected += b.amount;
+                    if (b.paidDate && b.paidDate.trim() !== "") dashPaid += b.amount;
+                    else dashUnpaid += b.amount;
+                }
+            })));
+
+            // 渲染頂部儀表板
+            dashZone.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px;">
+                    <div style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #2563eb;">
+                        <div style="font-size: 13px; color: #64748b; font-weight: 600;">本月 (${curM}) 預期總應收</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #0f172a; margin-top: 5px;">$${dashExpected.toLocaleString()}</div>
+                    </div>
+                    <div style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #10b981;">
+                        <div style="font-size: 13px; color: #64748b; font-weight: 600;">本月 (${curM}) 已實入帳</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #166534; margin-top: 5px;">$${dashPaid.toLocaleString()}</div>
+                    </div>
+                    <div style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #ef4444;">
+                        <div style="font-size: 13px; color: #64748b; font-weight: 600;">本月 (${curM}) 剩餘待催繳</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #991b1b; margin-top: 5px;">$${dashUnpaid.toLocaleString()}</div>
+                    </div>
+                </div>`;
+
+            // 渲染社區與房源卡片
             groupZone.innerHTML = myData.map((group, gIdx) => `
                 <div class="group-section">
                     <div class="group-header">
@@ -258,7 +361,13 @@
                             let depositHTML = "", monthsHTML = "";
                             room.bills.forEach((bill, bIdx) => {
                                 let isPaid = bill.paidDate && bill.paidDate.trim() !== "";
+                                
+                                // 整合 功能 2：未收狀態旁自動生成 Line 催繳快捷鍵 💬
                                 let badge = `<span class="status-badge ${isPaid ? 'status-paid' : 'status-unpaid'}" onclick="changePaidDate(${gIdx},${rIdx},${bIdx})">${isPaid ? bill.paidDate : '未收'}</span>`;
+                                if(!isPaid && !bill.name.includes("押金")) {
+                                    badge += ` <button class="action-btn" style="color:#06b6d4; font-size:12px; font-weight:bold;" onclick="event.stopPropagation(); copyLineMessage('${room.tenant}', '${room.number}', '${bill.name}', ${bill.amount})" title="複製Line催繳訊息">💬</button>`;
+                                }
+
                                 if (bill.name.includes("押金")) {
                                     depositHTML = `<div class="extra-row"><span>${bill.name}: <strong>$${bill.amount.toLocaleString()}</strong></span>${badge}</div>`;
                                 } else {
@@ -266,8 +375,11 @@
                                 }
                             });
 
+                            // 整合 功能 4：檢查合約期是否觸發警告
+                            let expiry = checkLeaseExpiry(room.rentPeriod);
+
                             return `
-                                <div class="room-card">
+                                <div class="${expiry.warning ? 'room-card expiry-warning' : 'room-card'}">
                                     <div class="card-actions">
                                         <button class="action-btn edit-btn" onclick="openEditRoomModal(${gIdx},${rIdx})">✏️</button>
                                         <button class="action-btn delete-btn" onclick="deleteRoom(${gIdx},${rIdx})">✕</button>
@@ -275,6 +387,7 @@
                                     <div class="room-number">🚪 ${room.number} 室</div>
                                     <div class="info-text">👤 租客: <strong>${room.tenant}</strong></div>
                                     <div class="info-text">📅 租期: ${room.rentPeriod}</div>
+                                    ${expiry.text ? `<div class="expiry-badge">${expiry.text}</div>` : ''}
                                     ${room.memo && room.memo.trim() ? `<div class="memo-badge">📝 備註: ${room.memo}</div>` : ''}
                                     <div class="ledger-box">
                                         <div class="ledger-title">📋 每月收費結構</div>
@@ -292,7 +405,6 @@
             if(triggerSave) saveToCloud();
         }
 
-        // 互動事件
         function changePaidDate(gIdx, rIdx, bIdx) {
             let bill = myData[gIdx].rooms[rIdx].bills[bIdx];
             let newDate = prompt("請輸入入帳日期 (留空代表重設為『未收』)：", bill.paidDate || "");
@@ -309,7 +421,6 @@
             document.getElementById("customName").value = ""; document.getElementById("customAmount").value = "";
         }
 
-        // Modal 控制
         function openGroupModal() { 
             document.getElementById("groupModalTitle").innerText = "📍 新增社區群組";
             document.getElementById("submitGroupBtn").innerText = "確定建立";
@@ -341,6 +452,7 @@
             document.getElementById("inputMemo").value = ""; document.getElementById("inputRent").value = "12000";
             document.getElementById("inputDeposit").value = "24000"; document.getElementById("inputManage").value = "0";
             document.getElementById("inputParking").value = "0"; document.getElementById("inputPet").value = "0";
+            document.getElementById("calcPrev").value = ""; document.getElementById("calcCurr").value = "";
             document.getElementById("roomModal").style.display = "flex";
         }
 
