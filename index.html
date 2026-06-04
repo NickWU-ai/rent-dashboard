@@ -487,6 +487,41 @@
         function deleteRoom(gIndex, rIndex) {
             if(confirm("確定刪除？")) { myData[gIndex].rooms.splice(rIndex, 1); renderDashboard(); }
         }
+        // 🌟 備份功能：將目前資料打包成 JSON 檔案下載到電腦
+function downloadBackup() {
+    if (myData.length === 0) {
+        alert("目前系統內還沒有任何資料可以下載喔！");
+        return;
+    }
+
+    // 1. 將資料格式化為漂亮的 JSON 字串 (排版整齊)
+    let dataString = JSON.stringify(myData, null, 4);
+    
+    // 2. 建立一個虛擬的檔案 (Blob)
+    let blob = new Blob([dataString], { type: "application/json" });
+    
+    // 3. 取得今天的日期來當作檔名 (例如：2026-06-04)
+    let today = new Date();
+    let dateStr = today.getFullYear() + "-" + 
+                  String(today.getMonth() + 1).padStart(2, '0') + "-" + 
+                  String(today.getDate()).padStart(2, '0');
+    
+    let fileName = "物業資料備份_" + dateStr + ".json";
+
+    // 4. 創造一個隱藏的下載連結，點擊它，然後再馬上把它刪掉
+    let downloadLink = document.createElement("a");
+    let url = URL.createObjectURL(blob);
+    
+    downloadLink.href = url;
+    downloadLink.download = fileName;
+    
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    
+    // 釋放記憶體
+    URL.revokeObjectURL(url);
+}
     </script>
 </body>
 </html>
