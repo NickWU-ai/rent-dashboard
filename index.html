@@ -77,12 +77,11 @@
             <div class="subtitle" id="connection-status">🟢 系統載入中...</div>
         </div>
         <div>
-    <button class="btn" style="background-color: #64748b; color: white; margin-right: 10px;" onclick="forceDownloadFromCloud()">🔄 雲端同步</button>
-    
-    <button class="btn" style="background-color: #f59e0b; color: white; margin-right: 10px;" onclick="downloadBackup()">📥 下載備份</button>
-    <button class="btn btn-primary" onclick="openGroupModal()">＋ 新增社區</button>
-    <button class="btn btn-primary" style="background-color: #10b981;" onclick="openRoomModal()">＋ 新增房源</button>
-</div>
+            <button class="btn" style="background-color: #64748b; color: white; margin-right: 10px;" onclick="forceDownloadFromCloud()">🔄 雲端同步</button>
+            <button class="btn" style="background-color: #f59e0b; color: white; margin-right: 10px;" onclick="downloadBackup()">📥 下載備份</button>
+            <button class="btn btn-primary" onclick="openGroupModal()">＋ 新增社區</button>
+            <button class="btn btn-primary" style="background-color: #10b981;" onclick="openRoomModal()">＋ 新增房源</button>
+        </div>
     </div>
     
     <div id="group-zone"></div>
@@ -176,7 +175,7 @@
         let myData = [];
         let tempCustomBills = [];
 
-        // 【安全核心】1. 絕對優先讀取本機資料，拒絕一開機就自動覆蓋
+        // 【安全核心】絕對優先讀取本機資料
         try {
             let localData = localStorage.getItem("date_driven_landlord_data");
             if (localData && localData !== "[]" && localData !== "undefined") {
@@ -189,7 +188,7 @@
 
         renderDashboard(false);
 
-        // 【安全核心】2. 只有當「本機完全空空如也」時，才會自動嘗試去雲端抓取
+        // 只有本機為空時，才自動去雲端抓
         if (myData.length === 0) {
             document.getElementById("connection-status").innerText = "⏳ 嘗試從雲端還原資料...";
             fetch(CLOUD_API_URL + "?t=" + new Date().getTime())
@@ -207,11 +206,10 @@
                     document.getElementById("connection-status").innerText = "⚠️ 雲端連線失敗 (目前為單機模式)";
                 });
         } else {
-            // 本機已有資料，直接顯示就緒，不進行自動覆蓋！
             document.getElementById("connection-status").innerText = "🟢 本機資料就緒";
         }
 
-        // 🌟 新增功能：手動強制從雲端下載 (換電腦時使用)
+        // 手動強制從雲端下載 (換電腦時使用)
         function forceDownloadFromCloud() {
             if(!confirm("⚠️ 確定要從雲端下載最新資料嗎？\n\n這會用「雲端的紀錄」覆蓋掉您「目前畫面上的資料」喔！\n(建議僅在更換裝置時使用)")) return;
             
@@ -233,11 +231,41 @@
                 .catch(e => alert("❌ 下載失敗，請檢查網路連線。"))
                 .finally(() => {
                     document.getElementById("sync-overlay").style.display = "none";
-                    document.getElementById("sync-overlay-text").innerText = "⏳ 資料儲存至雲端中，請稍候..."; // 恢復預設文字
+                    document.getElementById("sync-overlay-text").innerText = "⏳ 資料儲存至雲端中，請稍候..."; 
                 });
         }
 
-        // 🌟 核心防護：存檔時阻擋畫面，爭取 Google 寫入時間
+        // 🌟 備份功能：將目前資料打包成 JSON 檔案下載到電腦
+        function downloadBackup() {
+            if (myData.length === 0) {
+                alert("目前系統內還沒有任何資料可以下載喔！");
+                return;
+            }
+
+            let dataString = JSON.stringify(myData, null, 4);
+            let blob = new Blob([dataString], { type: "application/json" });
+            
+            let today = new Date();
+            let dateStr = today.getFullYear() + "-" + 
+                          String(today.getMonth() + 1).padStart(2, '0') + "-" + 
+                          String(today.getDate()).padStart(2, '0');
+            
+            let fileName = "物業資料備份_" + dateStr + ".json";
+
+            let downloadLink = document.createElement("a");
+            let url = URL.createObjectURL(blob);
+            
+            downloadLink.href = url;
+            downloadLink.download = fileName;
+            
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // 存檔時阻擋畫面，爭取 Google 寫入時間
         function saveToCloud() {
             let syncOverlay = document.getElementById("sync-overlay");
             if(syncOverlay) syncOverlay.style.display = "flex";
@@ -245,11 +273,9 @@
             let currentJson = JSON.stringify(myData);
             localStorage.setItem("date_driven_landlord_data", currentJson);
 
-            // 送出到雲端
             document.getElementById("formJsonField").value = currentJson;
             document.getElementById("cloud-form").submit();
             
-            // 強制鎖定 2.5 秒，這段時間內無法點擊任何東西，避免過早 F5 導致中斷
             setTimeout(() => {
                 if(syncOverlay) syncOverlay.style.display = "none";
             }, 2500);
@@ -487,41 +513,6 @@
         function deleteRoom(gIndex, rIndex) {
             if(confirm("確定刪除？")) { myData[gIndex].rooms.splice(rIndex, 1); renderDashboard(); }
         }
-        // 🌟 備份功能：將目前資料打包成 JSON 檔案下載到電腦
-function downloadBackup() {
-    if (myData.length === 0) {
-        alert("目前系統內還沒有任何資料可以下載喔！");
-        return;
-    }
-
-    // 1. 將資料格式化為漂亮的 JSON 字串 (排版整齊)
-    let dataString = JSON.stringify(myData, null, 4);
-    
-    // 2. 建立一個虛擬的檔案 (Blob)
-    let blob = new Blob([dataString], { type: "application/json" });
-    
-    // 3. 取得今天的日期來當作檔名 (例如：2026-06-04)
-    let today = new Date();
-    let dateStr = today.getFullYear() + "-" + 
-                  String(today.getMonth() + 1).padStart(2, '0') + "-" + 
-                  String(today.getDate()).padStart(2, '0');
-    
-    let fileName = "物業資料備份_" + dateStr + ".json";
-
-    // 4. 創造一個隱藏的下載連結，點擊它，然後再馬上把它刪掉
-    let downloadLink = document.createElement("a");
-    let url = URL.createObjectURL(blob);
-    
-    downloadLink.href = url;
-    downloadLink.download = fileName;
-    
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-    
-    // 釋放記憶體
-    URL.revokeObjectURL(url);
-}
     </script>
 </body>
 </html>
