@@ -10,52 +10,39 @@
         .btn { padding: 10px 20px; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; border: none; }
         .btn-primary { background-color: #2563eb; color: white; }
         .group-section { background-color: #ffffff; border-radius: 16px; padding: 25px; margin-bottom: 30px; border: 1px solid #e2e8f0; }
-        
         .group-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px; }
         .group-title { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin: 0; }
         .group-edit-btn { background: none; border: none; color: #2563eb; cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
         .group-edit-btn:hover { background-color: #eff6ff; }
-        
         .card-container { display: flex; flex-wrap: wrap; gap: 20px; }
         .room-card { background-color: #f8fafc; border-radius: 12px; padding: 20px; width: 340px; position: relative; border: 1px solid #e2e8f0; }
-        
         .card-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; }
         .action-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px; }
         .delete-btn { color: #ef4444; }
         .edit-btn { color: #2563eb; }
-
         .room-number { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
         .info-text { font-size: 13px; color: #64748b; margin-bottom: 6px; }
-        
-        /* 備註專用樣式 */
         .memo-badge { background-color: #fffbeb; color: #b45309; border: 1px dashed #fde68a; padding: 6px 10px; border-radius: 6px; font-size: 12px; margin-top: 8px; margin-bottom: 4px; line-height: 1.4; word-break: break-all; }
-
         .ledger-box { background-color: #ffffff; border-radius: 8px; padding: 12px; margin-top: 15px; border: 1px solid #edf2f7; }
         .ledger-title { font-size: 12px; font-weight: bold; color: #64748b; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; }
-        
         .bill-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .bill-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; background: #f8fafc; padding: 6px; border-radius: 6px; }
-        
         .extra-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; background: #eff6ff; padding: 7px 10px; border-radius: 6px; border: 1px solid #bfdbfe; color: #1e40af; }
         .memo-text { font-size: 11px; color: #64748b; padding-left: 20px; line-height: 1.4; margin: 0 0 10px 0; }
-
         .status-badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; user-select: none; text-align: center; min-width: 45px; }
         .status-paid { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
         .status-unpaid { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-        
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.6); display: flex; justify-content: center; align-items: center; display: none; z-index: 1000; }
         .modal-box { background-color: white; padding: 30px; border-radius: 16px; width: 450px; max-height: 90vh; overflow-y: auto; }
         .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
         .form-group { margin-bottom: 14px; }
         .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
         .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
-        
         .form-row-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .custom-item-box { background-color: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1; }
         .custom-input-group { display: flex; gap: 8px; margin-bottom: 8px; }
         .custom-list { font-size: 12px; color: #475569; margin-top: 5px; padding-left: 20px; margin-bottom: 0; }
         .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
-        
         #sync-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); display: none; justify-content: center; align-items: center; font-size: 22px; font-weight: bold; color: #2563eb; z-index: 9999; flex-direction: column; gap: 15px; }
         .spinner { border: 4px solid #e2e8f0; border-top: 4px solid #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -128,12 +115,10 @@
                     <input type="text" id="inputPeriod" value="2026/06 ~ 2027/05">
                 </div>
             </div>
-            
             <div class="form-group">
                 <label>📝 房源備註事項</label>
-                <input type="text" id="inputMemo" placeholder="例如：冷氣剛換新、水錶起號1234、車位在B2...">
+                <input type="text" id="inputMemo" placeholder="例如：冷氣剛換新、車位在B2...">
             </div>
-
             <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 15px 0;">
             <div class="form-row-grid">
                 <div class="form-group">
@@ -178,27 +163,21 @@
     </div>
 
     <script>
-        // API 變數已自動填入你的專屬 Google 網址
         const CLOUD_API_URL = "https://script.google.com/macros/s/AKfycbw-uwKwzY6mIDtQOkC81pUj68huKnx2qZ3PKIbQtKfPycfyGpqhC4ln1Um-idpTBNrGbw/exec";
-
         let myData = [];
         let tempCustomBills = [];
 
+        // 初始化資料載入
         try {
             let localData = localStorage.getItem("date_driven_landlord_data");
-            if (localData && localData !== "[]" && localData !== "undefined") {
-                myData = JSON.parse(localData);
-            }
-        } catch (error) {
-            console.error("本地資料異常", error);
-            myData = [];
-        }
+            if (localData && localData !== "[]" && localData !== "undefined") myData = JSON.parse(localData);
+        } catch (e) { console.error("本地資料異常", e); }
 
         renderDashboard(false);
 
         if (myData.length === 0) {
             document.getElementById("connection-status").innerText = "⏳ 嘗試從雲端還原資料...";
-            fetch(CLOUD_API_URL + "?t=" + new Date().getTime())
+            fetch(`${CLOUD_API_URL}?t=${Date.now()}`)
                 .then(res => res.json())
                 .then(cloudJson => {
                     if (cloudJson && Object.keys(cloudJson).length > 0) {
@@ -209,171 +188,128 @@
                     } else {
                         document.getElementById("connection-status").innerText = "🟢 系統就緒 (目前資料庫為空)";
                     }
-                }).catch(e => {
-                    document.getElementById("connection-status").innerText = "⚠️ 雲端連線失敗 (目前為單機模式)";
-                });
+                }).catch(() => document.getElementById("connection-status").innerText = "⚠️ 雲端連線失敗 (單機模式)");
         } else {
             document.getElementById("connection-status").innerText = "🟢 本機資料就緒";
         }
 
+        // 雲端同步與備份
         function forceDownloadFromCloud() {
-            if(!confirm("⚠️ 確定要從雲端下載最新資料嗎？\n\n這會用「雲端的紀錄」覆蓋掉您「目前畫面上的資料」喔！\n(建議僅在更換裝置時使用)")) return;
-            
+            if(!confirm("⚠️ 確定要從雲端下載最新資料覆蓋目前畫面嗎？")) return;
             document.getElementById("sync-overlay").style.display = "flex";
-            document.getElementById("sync-overlay-text").innerText = "⬇️ 從雲端下載中，請稍候...";
+            document.getElementById("sync-overlay-text").innerText = "⬇️ 從雲端下載中...";
 
-            fetch(CLOUD_API_URL + "?t=" + new Date().getTime())
+            fetch(`${CLOUD_API_URL}?t=${Date.now()}`)
                 .then(res => res.json())
                 .then(cloudJson => {
                     if (cloudJson && Object.keys(cloudJson).length > 0) {
                         myData = cloudJson;
                         localStorage.setItem("date_driven_landlord_data", JSON.stringify(myData));
                         renderDashboard(false);
-                        alert("✅ 雲端資料同步完成！");
-                    } else {
-                        alert("⚠️ 雲端目前沒有任何資料可以下載。");
-                    }
+                        alert("✅ 同步完成！");
+                    } else { alert("⚠️ 雲端無資料。"); }
                 })
-                .catch(e => alert("❌ 下載失敗，請檢查網路連線。"))
-                .finally(() => {
-                    document.getElementById("sync-overlay").style.display = "none";
-                    document.getElementById("sync-overlay-text").innerText = "⏳ 資料儲存至雲端中，請稍候..."; 
-                });
+                .catch(() => alert("❌ 下載失敗"))
+                .finally(() => document.getElementById("sync-overlay").style.display = "none");
         }
 
         function downloadBackup() {
-            if (myData.length === 0) {
-                alert("目前系統內還沒有任何資料可以下載喔！");
-                return;
-            }
-
-            let dataString = JSON.stringify(myData, null, 4);
-            let blob = new Blob([dataString], { type: "application/json" });
-            
+            if (!myData.length) return alert("沒有資料可供下載！");
+            let blob = new Blob([JSON.stringify(myData, null, 4)], { type: "application/json" });
             let today = new Date();
-            let dateStr = today.getFullYear() + "-" + 
-                          String(today.getMonth() + 1).padStart(2, '0') + "-" + 
-                          String(today.getDate()).padStart(2, '0');
-            
-            let fileName = "物業資料備份_" + dateStr + ".json";
-
-            let downloadLink = document.createElement("a");
-            let url = URL.createObjectURL(blob);
-            
-            downloadLink.href = url;
-            downloadLink.download = fileName;
-            
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-            
-            URL.revokeObjectURL(url);
+            let dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            let a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = `物業資料備份_${dateStr}.json`;
+            a.click();
         }
 
         function saveToCloud() {
-            let syncOverlay = document.getElementById("sync-overlay");
-            if(syncOverlay) syncOverlay.style.display = "flex";
-
+            let overlay = document.getElementById("sync-overlay");
+            if(overlay) overlay.style.display = "flex";
             let currentJson = JSON.stringify(myData);
             localStorage.setItem("date_driven_landlord_data", currentJson);
-
             document.getElementById("formJsonField").value = currentJson;
             document.getElementById("cloud-form").submit();
-            
-            setTimeout(() => {
-                if(syncOverlay) syncOverlay.style.display = "none";
-            }, 2500);
+            setTimeout(() => { if(overlay) overlay.style.display = "none"; }, 2500);
         }
 
+        // 🌟 精簡核心：使用反引號樣板字串渲染畫面
         function renderDashboard(triggerSave = true) {
             let groupZone = document.getElementById("group-zone");
-            groupZone.innerHTML = ""; 
-
-            if (myData.length === 0) {
-                groupZone.innerHTML = '<div style="text-align:center; padding:60px; color:#64748b; background:white; border-radius:16px; border:1px dashed #cbd5e1; margin-top:20px;">' +
-                    '<p style="font-size:18px; margin-bottom:12px;">👋 歡迎使用！目前系統資料庫是清空狀態。</p>' +
-                    '<p style="font-size:14px; margin-bottom:20px;">請點擊右上角的 <strong>「＋ 新增社區」</strong> 開始建立您的物業資產群組吧！</p>' +
-                    '</div>';
+            if (!myData.length) {
+                groupZone.innerHTML = `
+                    <div style="text-align:center; padding:60px; color:#64748b; background:white; border-radius:16px; border:1px dashed #cbd5e1; margin-top:20px;">
+                        <p style="font-size:18px; margin-bottom:12px;">👋 歡迎使用！目前系統資料庫是清空狀態。</p>
+                        <p style="font-size:14px;">請點擊右上角的 <strong>「＋ 新增社區」</strong> 開始建立您的物業吧！</p>
+                    </div>`;
                 return;
             }
 
-            myData.forEach((group, groupIndex) => {
-                let groupHTML = '<div class="group-section">' +
-                    '<div class="group-header">' +
-                        '<h2 class="group-title">📍 ' + group.groupName + ' (' + group.rooms.length + ' 個房源)' +
-                            '<button class="group-edit-btn" onclick="openEditGroupModal(' + groupIndex + ')">✏️ 編輯名稱</button>' +
-                        '</h2>' +
-                    '</div>' +
-                    '<div class="card-container" id="gb-' + groupIndex + '"></div>' +
-                '</div>';
-                
-                groupZone.insertAdjacentHTML('beforeend', groupHTML);
-                let roomBox = document.getElementById('gb-' + groupIndex);
-                
-                group.rooms.forEach((room, roomIndex) => {
-                    let depositHTML = "";  
-                    let monthsHTML = ""; 
+            groupZone.innerHTML = myData.map((group, gIdx) => `
+                <div class="group-section">
+                    <div class="group-header">
+                        <h2 class="group-title">📍 ${group.groupName} (${group.rooms.length} 個房源)
+                            <button class="group-edit-btn" onclick="openEditGroupModal(${gIdx})">✏️ 編輯名稱</button>
+                        </h2>
+                    </div>
+                    <div class="card-container">
+                        ${group.rooms.map((room, rIdx) => {
+                            let depositHTML = "", monthsHTML = "";
+                            room.bills.forEach((bill, bIdx) => {
+                                let isPaid = bill.paidDate && bill.paidDate.trim() !== "";
+                                let badge = `<span class="status-badge ${isPaid ? 'status-paid' : 'status-unpaid'}" onclick="changePaidDate(${gIdx},${rIdx},${bIdx})">${isPaid ? bill.paidDate : '未收'}</span>`;
+                                if (bill.name.includes("押金")) {
+                                    depositHTML = `<div class="extra-row"><span>${bill.name}: <strong>$${bill.amount.toLocaleString()}</strong></span>${badge}</div>`;
+                                } else {
+                                    monthsHTML += `<div class="bill-row"><span>${bill.name}: <strong>$${bill.amount.toLocaleString()}</strong></span>${badge}</div>`;
+                                }
+                            });
 
-                    room.bills.forEach((bill, billIndex) => {
-                        let isPaid = bill.paidDate && bill.paidDate.trim() !== "";
-                        let statusClass = isPaid ? "status-badge status-paid" : "status-badge status-unpaid";
-                        let statusText = isPaid ? bill.paidDate : "未收";
-                        
-                        if (bill.name.includes("押金")) {
-                            depositHTML = '<div class="extra-row"><span>' + bill.name + ': <strong>$' + bill.amount.toLocaleString() + '</strong></span><span class="' + statusClass + '" onclick="changePaidDate(' + groupIndex + ',' + roomIndex + ',' + billIndex + ')">' + statusText + '</span></div>';
-                        } else {
-                            monthsHTML += '<div class="bill-row"><span>' + bill.name + ': <strong>$' + bill.amount.toLocaleString() + '</strong></span><span class="' + statusClass + '" onclick="changePaidDate(' + groupIndex + ',' + roomIndex + ',' + billIndex + ')">' + statusText + '</span></div>';
-                        }
-                    });
-
-                    let memoHTML = (room.details || []).map(d => '<li>' + d + '</li>').join("");
-
-                    let memoDisplayHTML = (room.memo && room.memo.trim() !== "") ? 
-                        '<div class="memo-badge">📝 備註: ' + room.memo + '</div>' : '';
-
-                    let roomHTML = '<div class="room-card">' +
-                        '<div class="card-actions">' +
-                            '<button class="action-btn edit-btn" onclick="openEditRoomModal(' + groupIndex + ',' + roomIndex + ')">✏️</button>' +
-                            '<button class="action-btn delete-btn" onclick="deleteRoom(' + groupIndex + ',' + roomIndex + ')">✕</button>' +
-                        '</div>' +
-                        '<div class="room-number">🚪 ' + room.number + ' 室</div>' +
-                        '<div class="info-text">👤 租客: <strong>' + room.tenant + '</strong></div>' +
-                        '<div class="info-text">📅 租期: ' + room.rentPeriod + '</div>' +
-                        memoDisplayHTML + 
-                        '<div class="ledger-box">' +
-                            '<div class="ledger-title">📋 每月收費結構</div>' +
-                            '<ul class="memo-text">' + memoHTML + '</ul>' +
-                            '<div class="ledger-title">💵 單次收費項目</div>' + depositHTML +
-                            '<div class="ledger-title" style="margin-top:10px;">📅 每月實收現金流 (入帳日)</div>' +
-                            '<div class="bill-grid">' + monthsHTML + '</div>' +
-                        '</div>' +
-                    '</div>';
-                    roomBox.insertAdjacentHTML('beforeend', roomHTML);
-                });
-            });
+                            return `
+                                <div class="room-card">
+                                    <div class="card-actions">
+                                        <button class="action-btn edit-btn" onclick="openEditRoomModal(${gIdx},${rIdx})">✏️</button>
+                                        <button class="action-btn delete-btn" onclick="deleteRoom(${gIdx},${rIdx})">✕</button>
+                                    </div>
+                                    <div class="room-number">🚪 ${room.number} 室</div>
+                                    <div class="info-text">👤 租客: <strong>${room.tenant}</strong></div>
+                                    <div class="info-text">📅 租期: ${room.rentPeriod}</div>
+                                    ${room.memo && room.memo.trim() ? `<div class="memo-badge">📝 備註: ${room.memo}</div>` : ''}
+                                    <div class="ledger-box">
+                                        <div class="ledger-title">📋 每月收費結構</div>
+                                        <ul class="memo-text">${(room.details || []).map(d => `<li>${d}</li>`).join("")}</ul>
+                                        <div class="ledger-title">💵 單次收費項目</div>${depositHTML}
+                                        <div class="ledger-title" style="margin-top:10px;">📅 每月實收現金流 (入帳日)</div>
+                                        <div class="bill-grid">${monthsHTML}</div>
+                                    </div>
+                                </div>`;
+                        }).join("")}
+                    </div>
+                </div>
+            `).join("");
             
             if(triggerSave) saveToCloud();
         }
 
-        function changePaidDate(gIndex, rIndex, bIndex) {
-            let currentBill = myData[gIndex].rooms[rIndex].bills[bIndex];
-            let oldDate = currentBill.paidDate || "";
-            let newDate = prompt("請輸入入帳日期 (留空代表重設為『未收』)：", oldDate);
+        // 互動事件
+        function changePaidDate(gIdx, rIdx, bIdx) {
+            let bill = myData[gIdx].rooms[rIdx].bills[bIdx];
+            let newDate = prompt("請輸入入帳日期 (留空代表重設為『未收』)：", bill.paidDate || "");
             if (newDate === null) return;
-            currentBill.paidDate = newDate.trim();
+            bill.paidDate = newDate.trim();
             renderDashboard();
         }
 
         function addCustomBillItem() {
-            let cName = document.getElementById("customName").value;
-            let cAmount = document.getElementById("customAmount").value;
-            if (!cName || !cAmount) return alert("請填寫項目名稱與金額！");
-            tempCustomBills.push({ name: cName, amount: Number(cAmount) });
-            document.getElementById("customListVisual").innerHTML = tempCustomBills.map(item => '<li>' + item.name + ': (每月 +' + item.amount.toLocaleString() + ')</li>').join("");
-            document.getElementById("customName").value = "";
-            document.getElementById("customAmount").value = "";
+            let name = document.getElementById("customName").value, amt = document.getElementById("customAmount").value;
+            if (!name || !amt) return alert("請填寫項目名稱與金額！");
+            tempCustomBills.push({ name, amount: Number(amt) });
+            document.getElementById("customListVisual").innerHTML = tempCustomBills.map(item => `<li>${item.name}: (每月 +${item.amount.toLocaleString()})</li>`).join("");
+            document.getElementById("customName").value = ""; document.getElementById("customAmount").value = "";
         }
 
+        // Modal 控制
         function openGroupModal() { 
             document.getElementById("groupModalTitle").innerText = "📍 新增社區群組";
             document.getElementById("submitGroupBtn").innerText = "確定建立";
@@ -382,58 +318,45 @@
             document.getElementById("groupModal").style.display = "flex"; 
         }
 
-        function openEditGroupModal(gIndex) {
+        function openEditGroupModal(gIdx) {
             document.getElementById("groupModalTitle").innerText = "✏️ 編輯社區名稱";
             document.getElementById("submitGroupBtn").innerText = "儲存修改";
-            document.getElementById("editGroupIndexFlag").value = gIndex; 
-            document.getElementById("inputGroupName").value = myData[gIndex].groupName;
+            document.getElementById("editGroupIndexFlag").value = gIdx; 
+            document.getElementById("inputGroupName").value = myData[gIdx].groupName;
             document.getElementById("groupModal").style.display = "flex";
         }
 
         function closeGroupModal() { document.getElementById("groupModal").style.display = "none"; }
         
         function openRoomModal() {
-            if (myData.length === 0) return alert("請先建立社區，才能新增房源喔！");
-
-            let select = document.getElementById("selectGroup");
-            select.innerHTML = myData.map((g, i) => '<option value="' + i + '">' + g.groupName + '</option>').join("");
+            if (!myData.length) return alert("請先建立社區！");
+            document.getElementById("selectGroup").innerHTML = myData.map((g, i) => `<option value="${i}">${g.groupName}</option>`).join("");
             document.getElementById("roomModalTitle").innerText = "🚪 新增房源與財務設定";
             document.getElementById("submitRoomBtn").innerText = "確認新增";
-            document.getElementById("editGroupIndex").value = "";
-            document.getElementById("editRoomIndex").value = "";
+            document.getElementById("editGroupIndex").value = ""; document.getElementById("editRoomIndex").value = "";
             document.getElementById("customItemBoxSection").style.opacity = "1";
             document.getElementById("customItemBoxSection").style.pointerEvents = "auto";
-            tempCustomBills = [];
-            document.getElementById("customListVisual").innerHTML = "";
-            document.getElementById("inputRoomNumber").value = "";
-            document.getElementById("inputTenant").value = "";
-            document.getElementById("inputMemo").value = ""; 
-            document.getElementById("inputRent").value = "12000";
-            document.getElementById("inputDeposit").value = "24000";
-            document.getElementById("inputManage").value = "0";
-            document.getElementById("inputParking").value = "0";
-            document.getElementById("inputPet").value = "0";
+            tempCustomBills = []; document.getElementById("customListVisual").innerHTML = "";
+            document.getElementById("inputRoomNumber").value = ""; document.getElementById("inputTenant").value = "";
+            document.getElementById("inputMemo").value = ""; document.getElementById("inputRent").value = "12000";
+            document.getElementById("inputDeposit").value = "24000"; document.getElementById("inputManage").value = "0";
+            document.getElementById("inputParking").value = "0"; document.getElementById("inputPet").value = "0";
             document.getElementById("roomModal").style.display = "flex";
         }
 
-        function openEditRoomModal(gIndex, rIndex) {
-            let room = myData[gIndex].rooms[rIndex];
+        function openEditRoomModal(gIdx, rIdx) {
+            let room = myData[gIdx].rooms[rIdx];
             openRoomModal(); 
-            document.getElementById("roomModalTitle").innerText = "✏️ 編輯 🚪 " + room.number + " 室 房源財務";
+            document.getElementById("roomModalTitle").innerText = `✏️ 編輯 🚪 ${room.number} 室 房源財務`;
             document.getElementById("submitRoomBtn").innerText = "儲存修改";
-            document.getElementById("editGroupIndex").value = gIndex;
-            document.getElementById("editRoomIndex").value = rIndex;
-            document.getElementById("customItemBoxSection").style.opacity = "0.5"; 
+            document.getElementById("editGroupIndex").value = gIdx; document.getElementById("editRoomIndex").value = rIdx;
+            document.getElementById("customItemBoxSection").style.opacity = "0.5";
             document.getElementById("customItemBoxSection").style.pointerEvents = "none";
-            document.getElementById("selectGroup").value = gIndex;
-            document.getElementById("inputRoomNumber").value = room.number;
-            document.getElementById("inputTenant").value = room.tenant;
-            document.getElementById("inputPeriod").value = room.rentPeriod;
-            document.getElementById("inputMemo").value = room.memo || ""; 
-            document.getElementById("inputRent").value = room.rent || 12000;
-            document.getElementById("inputDeposit").value = room.deposit !== undefined ? room.deposit : 24000;
-            document.getElementById("inputManage").value = room.manage || 0;
-            document.getElementById("inputParking").value = room.parking || 0;
+            document.getElementById("selectGroup").value = gIdx;
+            document.getElementById("inputRoomNumber").value = room.number; document.getElementById("inputTenant").value = room.tenant;
+            document.getElementById("inputPeriod").value = room.rentPeriod; document.getElementById("inputMemo").value = room.memo || "";
+            document.getElementById("inputRent").value = room.rent || 12000; document.getElementById("inputDeposit").value = room.deposit !== undefined ? room.deposit : 24000;
+            document.getElementById("inputManage").value = room.manage || 0; document.getElementById("inputParking").value = room.parking || 0;
             document.getElementById("inputPet").value = room.pet || 0;
         }
 
@@ -442,87 +365,66 @@
         function submitGroup() {
             let name = document.getElementById("inputGroupName").value;
             if(!name) return alert("請輸入名稱");
-            let gIndexFlag = document.getElementById("editGroupIndexFlag").value;
-            if (gIndexFlag !== "") { myData[gIndexFlag].groupName = name; } else { myData.push({ groupName: name, rooms: [] }); }
-            renderDashboard();
-            closeGroupModal();
-            document.getElementById("inputGroupName").value = "";
+            let flag = document.getElementById("editGroupIndexFlag").value;
+            if (flag !== "") { myData[flag].groupName = name; } else { myData.push({ groupName: name, rooms: [] }); }
+            renderDashboard(); closeGroupModal();
         }
 
         function submitRoom() {
-            let gIndex = document.getElementById("selectGroup").value;
-            let num = document.getElementById("inputRoomNumber").value;
-            let tenant = document.getElementById("inputTenant").value || "新租客";
-            let rent = Number(document.getElementById("inputRent").value);
-            let deposit = Number(document.getElementById("inputDeposit").value);
-            let period = document.getElementById("inputPeriod").value;
-            let memo = document.getElementById("inputMemo").value; 
-            let manageFee = Number(document.getElementById("inputManage").value) || 0;
-            let parkingFee = Number(document.getElementById("inputParking").value) || 0;
-            let petFee = Number(document.getElementById("inputPet").value) || 0;
-
+            let gIdx = document.getElementById("selectGroup").value, num = document.getElementById("inputRoomNumber").value;
             if(!num) return alert("請輸入房號");
+            
+            let tenant = document.getElementById("inputTenant").value || "新租客", rent = Number(document.getElementById("inputRent").value);
+            let deposit = Number(document.getElementById("inputDeposit").value), period = document.getElementById("inputPeriod").value;
+            let memo = document.getElementById("inputMemo").value, manage = Number(document.getElementById("inputManage").value) || 0;
+            let parking = Number(document.getElementById("inputParking").value) || 0, pet = Number(document.getElementById("inputPet").value) || 0;
 
-            let oldGroupIndex = document.getElementById("editGroupIndex").value;
-            let oldRoomIndex = document.getElementById("editRoomIndex").value;
-            let isEdit = oldGroupIndex !== "" && oldRoomIndex !== "";
+            let oldGIdx = document.getElementById("editGroupIndex").value, oldRIdx = document.getElementById("editRoomIndex").value;
+            let isEdit = oldGIdx !== "" && oldRIdx !== "";
 
-            let monthlyTotalCash = rent + manageFee + parkingFee + petFee;
-            let feeDetailsMemo = ["基本租金: $" + rent.toLocaleString()];
-            if (manageFee > 0) feeDetailsMemo.push("管理費: $" + manageFee.toLocaleString());
-            if (parkingFee > 0) feeDetailsMemo.push("車位費: $" + parkingFee.toLocaleString());
-            if (petFee > 0) feeDetailsMemo.push("寵物費: $" + petFee.toLocaleString());
+            let monthlyTotal = rent + manage + parking + pet;
+            let details = [`基本租金: $${rent.toLocaleString()}`];
+            if (manage > 0) details.push(`管理費: $${manage.toLocaleString()}`);
+            if (parking > 0) details.push(`車位費: $${parking.toLocaleString()}`);
+            if (pet > 0) details.push(`寵物費: $${pet.toLocaleString()}`);
 
-            let savedCustomTotal = 0;
+            let customTotal = 0;
             if (isEdit) {
-                savedCustomTotal = myData[oldGroupIndex].rooms[oldRoomIndex].customTotal || 0;
-                monthlyTotalCash += savedCustomTotal;
-                let oldCustomDetails = (myData[oldGroupIndex].rooms[oldRoomIndex].details || []).filter(d => !d.includes("基本租金") && !d.includes("管理費") && !d.includes("車位費") && !d.includes("寵物費"));
-                feeDetailsMemo = feeDetailsMemo.concat(oldCustomDetails);
+                customTotal = myData[oldGIdx].rooms[oldRIdx].customTotal || 0;
+                monthlyTotal += customTotal;
+                let oldCustom = (myData[oldGIdx].rooms[oldRIdx].details || []).filter(d => !d.includes("基本租金") && !d.includes("管理費") && !d.includes("車位費") && !d.includes("寵物費"));
+                details = details.concat(oldCustom);
             } else {
                 tempCustomBills.forEach(item => {
-                    monthlyTotalCash += item.amount;
-                    savedCustomTotal += item.amount;
-                    feeDetailsMemo.push(item.name + ": $" + item.amount.toLocaleString());
+                    monthlyTotal += item.amount; customTotal += item.amount;
+                    details.push(`${item.name}: $${item.amount.toLocaleString()}`);
                 });
             }
 
-            let finalBills = [];
+            let bills = [];
             if (deposit > 0) {
-                let savedOldDepositDate = "";
-                if (isEdit) {
-                    let oldRoom = myData[oldGroupIndex].rooms[oldRoomIndex];
-                    let oldDep = oldRoom.bills.find(b => b.name.includes("押金"));
-                    if (oldDep) savedOldDepositDate = oldDep.paidDate || "";
-                }
-                finalBills.push({ name: "🤝 房屋押金", amount: deposit, paidDate: savedOldDepositDate });
+                let oldDepDate = isEdit ? (myData[oldGIdx].rooms[oldRIdx].bills.find(b => b.name.includes("押金"))?.paidDate || "") : "";
+                bills.push({ name: "🤝 房屋押金", amount: deposit, paidDate: oldDepDate });
             }
 
             for (let i = 1; i <= 12; i++) {
-                let monthLabel = i < 10 ? "0" + i : i; 
-                let savedOldDate = "";
-                if (isEdit) {
-                    let oldRoom = myData[oldGroupIndex].rooms[oldRoomIndex];
-                    let oldBill = oldRoom.bills.find(b => b.name === "M" + monthLabel + " 總應收");
-                    if (oldBill) savedOldDate = oldBill.paidDate || ""; 
-                }
-                finalBills.push({ name: "M" + monthLabel + " 總應收", amount: monthlyTotalCash, paidDate: savedOldDate });
+                let m = String(i).padStart(2, '0');
+                let oldDate = isEdit ? (myData[oldGIdx].rooms[oldRIdx].bills.find(b => b.name === `M${m} 總應收`)?.paidDate || "") : "";
+                bills.push({ name: `M${m} 總應收`, amount: monthlyTotal, paidDate: oldDate });
             }
 
-            let roomObject = {
-                number: num, tenant: tenant, rentPeriod: period, memo: memo, rent: rent, deposit: deposit, manage: manageFee, parking: parkingFee, pet: petFee, customTotal: savedCustomTotal, details: feeDetailsMemo, bills: finalBills
-            };
+            let roomObj = { number: num, tenant, rentPeriod: period, memo, rent, deposit, manage, parking, pet, customTotal, details, bills };
 
             if (isEdit) {
-                if (oldGroupIndex != gIndex) { myData[oldGroupIndex].rooms.splice(oldRoomIndex, 1); myData[gIndex].rooms.push(roomObject); } else { myData[gIndex].rooms[oldRoomIndex] = roomObject; }
-            } else { myData[gIndex].rooms.push(roomObject); }
+                if (oldGIdx != gIdx) { myData[oldGIdx].rooms.splice(oldRIdx, 1); myData[gIdx].rooms.push(roomObj); } 
+                else { myData[gIdx].rooms[oldRIdx] = roomObj; }
+            } else { myData[gIdx].rooms.push(roomObj); }
 
-            renderDashboard();
-            closeRoomModal();
+            renderDashboard(); closeRoomModal();
         }
 
-        function deleteRoom(gIndex, rIndex) {
-            if(confirm("確定刪除？")) { myData[gIndex].rooms.splice(rIndex, 1); renderDashboard(); }
+        function deleteRoom(gIdx, rIdx) {
+            if(confirm("確定刪除？")) { myData[gIdx].rooms.splice(rIdx, 1); renderDashboard(); }
         }
     </script>
 </body>
