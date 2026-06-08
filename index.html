@@ -23,11 +23,9 @@
         
         .card-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; width: 100%; }
         
-        /* 房源卡片基礎 */
         .room-card { background-color: #f8fafc; border-radius: 12px; padding: 18px; position: relative; border: 1px solid #e2e8f0; transition: all 0.2s; overflow: hidden; width: 100%; }
         .room-card.expiry-warning { border: 2px solid #f97316 !important; background-color: #fff7ed !important; }
         
-        /* 🏠 招租公開頁風格卡片 */
         .room-card.public-showcase { background-color: #ffffff !important; border: 1px solid #e2e8f0 !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 0 !important; display: flex; flex-direction: column; }
         .public-img-container { width: 100%; height: 220px; background-color: #f1f5f9; position: relative; border-bottom: 1px solid #e2e8f0; overflow: hidden; display: flex; justify-content: center; align-items: center; }
         .public-img-container img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -55,7 +53,7 @@
         .bill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; width: 100%; }
         .bill-row { display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; font-size: 11px; background: #f8fafc; padding: 6px; border-radius: 6px; border: 1px solid #e2e8f0; gap: 4px; text-align: center; }
         .bill-row span { font-weight: 500; color: #475569; }
-        .extra-row { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; font-size: 11px; background: #eff6ff; padding: 6px 8px; border-radius: 6px; border: 1px solid #bfdbfe; color: #1e40af; }
+        .extra-row { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; font-size: 11px; background: #eff6ff; padding: 6px 8px; border-radius: 6px; border: 1px solid #bfdbfe; color: #1e40af; margin-bottom: 4px; }
         
         .status-badge { padding: 4px; border-radius: 4px; font-size: 11px; font-weight: 600; user-select: none; text-align: center; display: block; cursor: pointer; width: 100%; }
         .status-paid { background-color: #dcfce7; color: #15803d; }
@@ -206,8 +204,8 @@
                 </div>
             </div>
             <div class="form-group">
-                <label>🖼️ 招租房間照片連結 (可直接貼上 Google 雲端硬碟共用連結)</label>
-                <input type="text" id="inputRoomImg" placeholder="可直接貼上 https://drive.google.com/... 連結">
+                <label>🖼️ 招租房間照片連結</label>
+                <input type="text" id="inputRoomImg" placeholder="可直接貼上網址">
             </div>
             <div class="form-group">
                 <label>🏷️ 房屋配套設備 (多選，用逗號隔開)</label>
@@ -313,7 +311,6 @@
             return clean;
         }
 
-        // 判斷某個項目名稱是否為 12 個月的月租項目格式 (例如 2026/05)
         function isMonthlyRentBill(billName) {
             return /^\d{4}\/\d{2}$/.test(normalizeYM(billName));
         }
@@ -765,7 +762,6 @@
                             badge = `<div style="display:flex; gap:2px; width:100%;">${badge}<button class="action-btn" style="color:#06b6d4; font-size:11px;" onclick="event.stopPropagation(); copyLineMessage('${room.tenant}', '${room.number}', '${bill.name}', ${bill.amount})">💬</button></div>`;
                         }
                         
-                        // 非 YYYY/MM 格式的全部歸類為自訂彈性區
                         if (!isMonthlyRentBill(bill.name)) {
                             depositHTML += `<div class="extra-row"><span>${bill.name}: <strong>$${bill.amount}</strong></span><div style="width:70px;">${badge}</div></div>`;
                         } else {
@@ -876,7 +872,6 @@
             document.getElementById("inputRoomTags").value = room.roomTags || "";
             document.getElementById("inputMemo").value = room.memo || "";
             
-            // 💡 關鍵修復：只要名字「不是」月租格式（YYYY/MM），就100%是使用者自訂的水電雜費，全部抓出來
             tempCustomBills = (room.bills || []).filter(b => !isMonthlyRentBill(b.name));
             document.getElementById("customListVisual").innerHTML = tempCustomBills.map(item => `<li>${item.name}: $${item.amount}</li>`).join("");
         }
@@ -930,36 +925,42 @@
             let isEdit = oldGIdx !== "" && oldRIdx !== "";
 
             let finalBills = [];
-            let trackedNames = new Set();
+            let trackedUniqueKeys = new Set();
             
             // 1. 處理押金（如果大於0）
             if (deposit > 0) {
                 let oldDepositPaid = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => b.name === "房屋押金")?.paidDate || "") : "";
                 finalBills.push({ name: "房屋押金", amount: deposit, paidDate: oldDepositPaid });
-                trackedNames.add("房屋押金");
+                trackedUniqueKeys.add("房屋押金_" + deposit);
             }
 
-            // 2. 先匯入當前計算機新增的，或是舊有的「自訂費用」
+            // 2. 先融合當前計算機裡新增或修改的「自訂彈性費用」（管理費、清潔費、寵物費、電費）
             tempCustomBills.forEach(cb => {
-                if(!trackedNames.has(cb.name) && !isMonthlyRentBill(cb.name)) {
-                    let oldPaid = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => b.name === cb.name)?.paidDate || "") : "";
-                    finalBills.push({ name: cb.name, amount: cb.amount, paidDate: cb.paidDate || oldPaid });
-                    trackedNames.add(cb.name);
+                if(!isMonthlyRentBill(cb.name)) {
+                    let uniqueKey = cb.name + "_" + cb.amount;
+                    if(!trackedUniqueKeys.has(uniqueKey)) {
+                        let oldPaid = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => b.name === cb.name && b.amount === cb.amount)?.paidDate || "") : "";
+                        finalBills.push({ name: cb.name, amount: cb.amount, paidDate: cb.paidDate || oldPaid });
+                        trackedUniqueKeys.add(uniqueKey);
+                    }
                 }
             });
 
-            // 3. 備份機制：如果使用者編輯時沒動計算機，把舊帳單中「所有不是月租格式」的雜費項目原封不動搬過來
+            // 3. 備份安全網：如果是舊項目編輯，把原本帳單內所有「非月租格式」且沒被覆蓋的項目原封不動移過來，防止項目突然消失
             if (isEdit) {
                 let oldRoom = myData[selectedYear][oldGIdx].rooms[oldRIdx];
                 (oldRoom.bills || []).forEach(ob => {
-                    if (!isMonthlyRentBill(ob.name) && !trackedNames.has(ob.name)) {
-                        finalBills.push(ob);
-                        trackedNames.add(ob.name);
+                    if (!isMonthlyRentBill(ob.name)) {
+                        let uniqueKey = ob.name + "_" + ob.amount;
+                        if (!trackedUniqueKeys.has(uniqueKey)) {
+                            finalBills.push(ob);
+                            trackedUniqueKeys.add(uniqueKey);
+                        }
                     }
                 });
             }
 
-            // 4. 自動生成 12 個月的基本房租並融合
+            // 4. 生成 12 個月的基本月租格式並完美融合
             let leaseMonths = generateLeaseMonths(period);
             for (let i = 0; i < 12; i++) {
                 let mName = leaseMonths[i];
