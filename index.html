@@ -29,8 +29,8 @@
         
         /* 🏠 招租公開頁風格卡片 */
         .room-card.public-showcase { background-color: #ffffff !important; border: 1px solid #e2e8f0 !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 0 !important; display: flex; flex-direction: column; }
-        .public-img-wrapper { width: 100%; height: 180px; background-color: #e2e8f0; background-size: cover; background-position: center; position: relative; }
-        .public-badge { position: absolute; top: 12px; left: 12px; background: #10b981; color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+        .public-img-wrapper { width: 100%; height: 220px; background-color: #f1f5f9; background-size: contain; background-repeat: no-repeat; background-position: center; position: relative; border-bottom: 1px solid #e2e8f0; }
+        .public-badge { position: absolute; top: 12px; left: 12px; background: #10b981; color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; z-index: 5; }
         .public-content { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
         .public-tag-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
         .public-tag { background: #f1f5f9; color: #475569; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
@@ -178,7 +178,7 @@
         </div>
     </div>
 
-    <!-- 房源設定彈出視窗（支援管理員完整編輯與公開頁直接喚醒） -->
+    <!-- 房源設定彈出視窗 -->
     <div class="modal-overlay" id="roomModal">
         <div class="modal-box">
             <div class="modal-title" id="roomModalTitle">🚪 房源設定與多合約跨年優化</div>
@@ -205,8 +205,8 @@
                 </div>
             </div>
             <div class="form-group">
-                <label>🖼️ 招租房間照片連結 (公開頁使用)</label>
-                <input type="text" id="inputRoomImg" placeholder="https://images.unsplash.com/... 或留空">
+                <label>🖼️ 招租房間照片連結 (可直接貼上 Google 雲端硬碟共用連結)</label>
+                <input type="text" id="inputRoomImg" placeholder="可直接貼上 https://drive.google.com/... 連結">
             </div>
             <div class="form-group">
                 <label>🏷️ 房屋配套設備 (多選，公開頁展示)</label>
@@ -249,7 +249,7 @@
         </div>
     </div>
 
-    <!-- 彈出視窗：一鍵自動續約微調 -->
+    <!-- 彈出視窗：一鍵自動續約 -->
     <div class="modal-overlay" id="renewModal">
         <div class="modal-box">
             <div class="modal-title" style="font-size:16px; font-weight:700; color:#10b981; margin-bottom:15px;">🔄 一鍵自動智能續約</div>
@@ -264,7 +264,7 @@
                 <input type="text" id="renewNewPeriod">
             </div>
             <div class="form-group">
-                <label>💰 續約新月租金 (可當場調整或保持不變)</label>
+                <label>💰 續約新月租金</label>
                 <input type="number" id="renewNewRent">
             </div>
             <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
@@ -286,7 +286,21 @@
         let tempCustomBills = [];
         let currentFilter = 'all'; 
         let chartInstance = null;
-        let isPublicEditing = false; // 標記目前是否是從公開頁發起的編輯
+        let isPublicEditing = false;
+
+        // 🧠 核心增強：自動將 Google Drive 網頁共用網址轉換成直連圖片 URL 的神奇魔法
+        function convertGoogleDriveLink(url) {
+            if (!url) return "";
+            let cleaned = url.trim();
+            // 識別是否包含 drive.google.com 且包含檔案 id 模式
+            if (cleaned.includes("drive.google.com")) {
+                let match = cleaned.match(/\/d\/([a-zA-Z0-9-_]+)/) || cleaned.match(/id=([a-zA-Z0-9-_]+)/);
+                if (match && match[1]) {
+                    return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+                }
+            }
+            return cleaned;
+        }
 
         function normalizeYM(str) {
             if(!str) return "";
@@ -321,7 +335,7 @@
 
         function toggleViewMode() {
             isAdmin = false; isFullView = false; currentFilter = 'vacant';
-            alert("👁️ 已切換為「對外公開招租頁模式」，已為您開放「直接編輯招租資訊」功能。");
+            alert("👁️ 已切換為「對外公開招租頁模式」。");
             renderDashboard(false);
         }
 
@@ -475,12 +489,11 @@
             };
 
             targetGroup.rooms.push(newRoomObj);
-            
             selectedYear = targetYear;
             document.getElementById("yearSelect").value = selectedYear;
             
             closeRenewModal();
-            alert(`✅ 續約轉單成功！已自動為您切換至 ${targetYear} 年度檢視新帳本。`);
+            alert(`✅ 續約轉單成功！`);
             renderDashboard(true, true);
         }
 
@@ -510,8 +523,6 @@
                     localStorage.setItem("date_driven_landlord_data", JSON.stringify(myData));
                     renderDashboard(false, true);
                     document.getElementById("connection-status").innerText = `🟢 雲端同步成功 (${selectedYear})`;
-                } else {
-                    document.getElementById("connection-status").innerText = "🟢 資料庫就緒";
                 }
             }).catch(() => {
                 document.getElementById("connection-status").innerText = "⚠️ 離線單機模式";
@@ -527,7 +538,7 @@
 
         function forceDownloadFromCloud() {
             if (!checkPermission()) return;
-            if(!confirm("確定拉取雲端完整多年度資料覆蓋目前畫面？")) return;
+            if(!confirm("確定拉取雲端完整資料？")) return;
             document.getElementById("sync-overlay").style.display = "flex";
             fetch(`${CLOUD_API_URL}?t=${Date.now()}`)
                 .then(res => res.json())
@@ -552,7 +563,6 @@
         }
 
         function saveToCloud() {
-            // 開放招租頁直接修改時也能夠儲存
             let overlay = document.getElementById("sync-overlay");
             if(overlay) overlay.style.display = "flex";
             let currentJson = JSON.stringify(myData);
@@ -563,7 +573,7 @@
         }
 
         function copyLineMessage(tenant, roomNum, billName, amount) {
-            let msg = `${tenant}您好，提醒您：您 ${roomNum} 室的 ${billName} 共計 $${amount.toLocaleString()} 元尚未入帳。若已匯款請提供帳號後五碼核對，謝謝！`;
+            let msg = `${tenant}您好，提醒您：您 ${roomNum} 室的 ${billName} 共計 $${amount.toLocaleString()} 元尚未入帳。`;
             navigator.clipboard.writeText(msg).then(() => alert(`📋 催繳訊息已複製！`));
         }
 
@@ -655,7 +665,7 @@
 
             if (!activeData.length) {
                 if(dashZone) dashZone.innerHTML = ""; 
-                groupZone.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b; background:white; border-radius:16px; border:1px dashed #cbd5e1; margin-top:10px;"><p>👋 歡迎使用！請先點擊右上角新增社區與房源。</p></div>`;
+                groupZone.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;"><p>👋 歡迎使用！請先點擊右上角新增社區與房源。</p></div>`;
                 if(triggerSave) saveToCloud();
                 return;
             }
@@ -702,10 +712,11 @@
                     let tName = (room.tenant || "").trim();
                     let isVacant = tName === "" || tName.includes("待租");
 
-                    // 招租公開頁模式
+                    // 🏠 訪客模式招租卡片
                     if (isPublicViewMode) {
+                        // 如果未填連結，則採用預設的精緻房間插圖
                         let imgUrl = room.roomImg || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80";
-                        let tagHtml = (room.roomTags || "精選優質房源,採光佳").split(",").map(t => `<span class="public-tag"># ${t.trim()}</span>`).join("");
+                        let tagHtml = (room.roomTags || "精選優質房源").split(",").map(t => `<span class="public-tag"># ${t.trim()}</span>`).join("");
                         return `
                             <div class="room-card public-showcase">
                                 <div class="public-img-wrapper" style="background-image: url('${imgUrl}')">
@@ -725,7 +736,7 @@
                             </div>`;
                     }
 
-                    // 管理員正常完整版後台
+                    // 管理員後台視圖
                     let depositHTML = "", monthsHTML = "";
                     room.bills.forEach((bill, bIdx) => {
                         let isPaid = bill.paidDate && bill.paidDate.trim() !== "";
@@ -761,7 +772,7 @@
                         </div>`;
                 }).join("");
 
-                let sectionTitleHtml = isPublicViewMode ? `📍 ${group.groupName} - 精選待租空房` : `📍 ${group.groupName} (${filteredRooms.length} 房)`;
+            let sectionTitleHtml = isPublicViewMode ? `📍 ${group.groupName} - 精選待租空房` : `📍 ${group.groupName} (${filteredRooms.length} 房)`;
 
                 mainHTML += `
                 <div class="group-section">
@@ -781,7 +792,7 @@
         function changePaidDate(gIdx, rIdx, bIdx) {
             if (!checkPermission()) return;
             let bill = myData[selectedYear][gIdx].rooms[rIdx].bills[bIdx];
-            let newDate = prompt("請輸入入帳日期 (例如: 2026/03/15，或輸入 2603 自動辨識)", bill.paidDate || "");
+            let newDate = prompt("請輸入入帳日期", bill.paidDate || "");
             if (newDate === null) return;
             newDate = newDate.trim();
             if (/^\d{4}$/.test(newDate)) {
@@ -817,7 +828,6 @@
             document.getElementById("inputRoomTags").value = "冷氣, 雙人床, 獨立洗衣機";
             document.getElementById("inputMemo").value = "";
             
-            // 預設將完整版欄位打開
             document.getElementById("selectGroup").disabled = false;
             document.getElementById("inputRoomNumber").disabled = false;
             document.getElementById("inputTenant").disabled = false;
@@ -845,9 +855,8 @@
             document.getElementById("inputMemo").value = room.memo || "";
         }
 
-        // 🧠 新增：專屬公開頁發起的「簡易招租資料編輯器」
         function openPublicEditRoomModal(gIdx, rIdx) {
-            isPublicEditing = true; // 開啟公開修改通行證
+            isPublicEditing = true; 
             let room = myData[selectedYear][gIdx].rooms[rIdx];
             openRoomModal();
             
@@ -861,7 +870,6 @@
             document.getElementById("inputRoomTags").value = room.roomTags || "";
             document.getElementById("inputMemo").value = room.memo || "";
 
-            // 隱藏非公開的財務性/架構性敏感欄位，避免誤觸
             document.getElementById("selectGroup").disabled = true;
             document.getElementById("inputRoomNumber").disabled = true;
             document.getElementById("inputTenant").disabled = true;
@@ -883,7 +891,11 @@
             let tenant = document.getElementById("inputTenant").value || "待租";
             let rent = Number(document.getElementById("inputRent").value);
             let period = document.getElementById("inputPeriod").value;
-            let roomImg = document.getElementById("inputRoomImg").value;
+            
+            // 🧠 在這裡直接進行 Google 雲端網址防呆轉換
+            let rawImgUrl = document.getElementById("inputRoomImg").value;
+            let processedImgUrl = convertGoogleDriveLink(rawImgUrl);
+            
             let roomTags = document.getElementById("inputRoomTags").value;
             let memo = document.getElementById("inputMemo").value;
             
@@ -891,7 +903,6 @@
             let oldRIdx = document.getElementById("editRoomIndex").value;
             let isEdit = oldGIdx !== "" && oldRIdx !== "";
 
-            // 自動同步底層 12 個月的應收帳單租金
             let bills = [];
             let leaseMonths = generateLeaseMonths(period);
             for (let i = 0; i < 12; i++) {
@@ -899,13 +910,13 @@
                 bills.push({ name: leaseMonths[i], amount: rent, paidDate: oldDate });
             }
 
-            let roomObj = { number: num, tenant, rentPeriod: period, memo, rent, roomImg, roomTags, bills, repairs: [] };
+            let roomObj = { number: num, tenant, rentPeriod: period, memo, rent, roomImg: processedImgUrl, roomTags, bills, repairs: [] };
             if (isEdit) { myData[selectedYear][gIdx].rooms[oldRIdx] = roomObj; } 
             else { myData[selectedYear][gIdx].rooms.push(roomObj); }
             
             closeRoomModal();
             renderDashboard(true, false); 
-            if(isPublicEditing) { alert("✨ 招租資訊已即時同步更新！"); }
+            if(isPublicEditing) { alert("✨ 招租資訊與雲端照片已即時同步更新！"); }
             isPublicEditing = false;
         }
 
