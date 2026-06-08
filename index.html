@@ -141,7 +141,7 @@
                     <option value="vacant">2. 有房間但沒租約 (待租中房源)</option>
                     <option value="unpaid">3. 未繳租金</option>
                     <optgroup label="4. 房屋群組 (單獨社區顯示)" id="dropdownGroupSection">
-                        </optgroup>
+                    </optgroup>
                 </select>
             </div>
         </div>
@@ -644,20 +644,37 @@
             }
         }
 
+        // 🛠️ 已修正：年度歷史實收租金趨勢解析邏輯
         function drawChart() {
             let monthlyCashflow = Array(12).fill(0);
             let activeData = myData[selectedYear] || [];
             
-            // 修正圖表統計邏輯：看入帳日期是否屬於當前選擇的年度與對應月份
             activeData.forEach(g => g.rooms.forEach(r => r.bills.forEach(b => {
                 if (b.paidDate && b.paidDate.trim() !== "") {
-                    // 嘗試解析入帳日期 e.g. "2026/06/10" 或 "06/10"
-                    let parts = b.paidDate.split("/");
+                    // 1. 利用正則表達式撈出字串中所有的連續數字
+                    let matches = b.paidDate.match(/\d+/g); 
                     let mIdx = -1;
-                    if (parts.length >= 2) {
-                        let mStr = parts.length === 3 ? parts[1] : parts[0];
-                        mIdx = parseInt(mStr) - 1;
+                    
+                    if (matches && matches.length > 0) {
+                        if (matches.length >= 3) {
+                            // 格式如 "2026/06/08" 或 "2026-06-08"
+                            let yearStr = matches[0];
+                            let monthStr = matches[1];
+                            
+                            // 安全驗證：如果填了西元年份，必須與當前選定的年度一致才計入
+                            if (yearStr === selectedYear || yearStr.endsWith(selectedYear.substring(2))) {
+                                mIdx = parseInt(monthStr) - 1;
+                            }
+                        } else if (matches.length === 2) {
+                            // 格式如 "06/08" 或 "6-8" (自動預設為當前選擇的年度)
+                            mIdx = parseInt(matches[0]) - 1;
+                        } else if (matches.length === 1) {
+                            // 格式如單打一個月份數字 "6" 或是 "6月"
+                            mIdx = parseInt(matches[0]) - 1;
+                        }
                     }
+                    
+                    // 2. 月份合法性驗證與金額加總
                     if (mIdx >= 0 && mIdx < 12) {
                         monthlyCashflow[mIdx] += b.amount;
                     }
