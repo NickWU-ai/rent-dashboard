@@ -3,78 +3,88 @@
 <head>
     <title>物業資產財務管理系統 🏢</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body { background-color: #f8fafc; font-family: sans-serif; padding: 40px; color: #1e293b; margin: 0; }
-        .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        h1 { color: #0f172a; margin: 0; font-size: 28px; }
-        .subtitle { color: #64748b; font-size: 14px; margin-top: 5px; }
-        .btn { padding: 10px 20px; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; border: none; transition: background 0.2s; }
+        body { background-color: #f8fafc; font-family: sans-serif; padding: 20px; color: #1e293b; margin: 0; box-sizing: border-box; }
+        *, *:before, *:after { box-sizing: inherit; }
+        
+        .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+        h1 { color: #0f172a; margin: 0; font-size: 24px; }
+        .subtitle { color: #64748b; font-size: 13px; margin-top: 5px; }
+        .btn-wrapper { display: flex; flex-wrap: wrap; gap: 8px; }
+        .btn { padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer; border: none; transition: background 0.2s; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; }
         .btn-primary { background-color: #2563eb; color: white; }
-        .group-section { background-color: #ffffff; border-radius: 16px; padding: 25px; margin-bottom: 30px; border: 1px solid #e2e8f0; }
-        .group-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px; }
-        .group-title { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin: 0; }
-        .group-edit-btn { background: none; border: none; color: #2563eb; cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
+        
+        .group-section { background-color: #ffffff; border-radius: 16px; padding: 20px; margin-bottom: 25px; border: 1px solid #e2e8f0; width: 100%; display: block !important; }
+        .group-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .group-title { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin: 0; color: #0f172a; }
+        .group-edit-btn { background: none; border: none; color: #2563eb; cursor: pointer; font-size: 13px; padding: 2px 6px; border-radius: 4px; }
         .group-edit-btn:hover { background-color: #eff6ff; }
         
-        /* RWD 彈性網格佈局 */
-        .card-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        /* 網格佈局防爆開 */
+        .card-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; width: 100%; }
         
-        /* 房源卡片與到期警告樣式 */
-        .room-card { background-color: #f8fafc; border-radius: 12px; padding: 20px; position: relative; border: 1px solid #e2e8f0; transition: all 0.2s; box-sizing: border-box; }
+        /* 房源卡片 */
+        .room-card { background-color: #f8fafc; border-radius: 12px; padding: 18px; position: relative; border: 1px solid #e2e8f0; transition: all 0.2s; overflow: hidden; width: 100%; }
         .room-card.expiry-warning { border: 2px solid #f97316 !important; background-color: #fff7ed !important; }
-        .expiry-badge { background-color: #ffedd5; color: #ea580c; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 6px; display: inline-block; border: 1px solid #fed7aa; }
         
-        .card-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; }
+        .card-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; z-index: 10; }
         .action-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px; }
         .delete-btn { color: #ef4444; }
         .edit-btn { color: #2563eb; }
-        .room-number { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
-        .info-text { font-size: 13px; color: #64748b; margin-bottom: 6px; }
+        .room-number { font-size: 17px; font-weight: 700; margin-bottom: 12px; color: #0f172a; padding-right: 60px; }
+        .info-text { font-size: 13px; color: #64748b; margin-bottom: 6px; word-break: break-all; }
         .memo-badge { background-color: #fffbeb; color: #b45309; border: 1px dashed #fde68a; padding: 6px 10px; border-radius: 6px; font-size: 12px; margin-top: 8px; margin-bottom: 4px; line-height: 1.4; word-break: break-all; }
-        .ledger-box { background-color: #ffffff; border-radius: 8px; padding: 12px; margin-top: 15px; border: 1px solid #edf2f7; }
-        .ledger-title { font-size: 12px; font-weight: bold; color: #64748b; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
-        .bill-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .bill-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; background: #f8fafc; padding: 6px; border-radius: 6px; }
-        .extra-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; background: #eff6ff; padding: 7px 10px; border-radius: 6px; border: 1px solid #bfdbfe; color: #1e40af; }
-        .memo-text { font-size: 11px; color: #64748b; padding-left: 20px; line-height: 1.4; margin: 0 0 10px 0; }
         
-        .status-badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; user-select: none; text-align: center; min-width: 45px; display: inline-block; }
+        /* 💡 徹底解決現金流表格超出範圍的排版 */
+        .ledger-box { background-color: #ffffff; border-radius: 8px; padding: 12px; margin-top: 15px; border: 1px solid #edf2f7; width: 100%; }
+        .ledger-title { font-size: 12px; font-weight: bold; color: #64748b; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .bill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; width: 100%; }
+        .bill-row { display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; font-size: 11px; background: #f8fafc; padding: 6px; border-radius: 6px; border: 1px solid #e2e8f0; gap: 4px; text-align: center; }
+        .bill-row span { font-weight: 500; color: #475569; }
+        .extra-row { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; font-size: 11px; background: #eff6ff; padding: 6px 8px; border-radius: 6px; border: 1px solid #bfdbfe; color: #1e40af; }
+        
+        .status-badge { padding: 4px; border-radius: 4px; font-size: 11px; font-weight: 600; user-select: none; text-align: center; display: block; cursor: pointer; width: 100%; }
         .status-paid { background-color: #dcfce7; color: #15803d; }
         .status-unpaid { background-color: #fee2e2; color: #b91c1c; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.6); display: flex; justify-content: center; align-items: center; display: none; z-index: 1000; }
-        .modal-box { background-color: white; padding: 30px; border-radius: 16px; width: 460px; max-height: 90vh; overflow-y: auto; }
-        .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
-        .form-group { margin-bottom: 14px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
-        .form-row-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .custom-item-box { background-color: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1; }
-        .custom-input-group { display: flex; gap: 8px; margin-bottom: 8px; }
-        .custom-list { font-size: 12px; color: #475569; margin-top: 5px; padding-left: 20px; margin-bottom: 0; }
-        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
-        #sync-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); display: none; justify-content: center; align-items: center; font-size: 22px; font-weight: bold; color: #2563eb; z-index: 9999; flex-direction: column; gap: 15px; }
-        .spinner { border: 4px solid #e2e8f0; border-top: 4px solid #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.6); display: flex; justify-content: center; align-items: center; display: none; z-index: 1000; padding: 10px; }
+        .modal-box { background-color: white; padding: 20px; border-radius: 16px; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+        .form-row-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        #sync-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.9); display: none; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; color: #2563eb; z-index: 9999; flex-direction: column; gap: 15px; }
+        .spinner { border: 4px solid #e2e8f0; border-top: 4px solid #2563eb; border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* 📱 手機版 RWD 覆蓋樣式 */
+        /* 📱 精準修正手機版 RWD 覆蓋 */
         @media (max-width: 768px) {
-            body { padding: 15px; }
-            .header-container { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .header-container div:last-child { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
-            .btn { flex: 1 1 45%; text-align: center; padding: 12px 10px; font-size: 13px; }
-            .top-grid { grid-template-columns: 1fr !important; gap: 15px; }
-            .top-grid > div { height: auto !important; }
-            .toolbar-container { flex-direction: column; align-items: stretch !important; gap: 12px; }
-            .toolbar-container .controls-wrapper { flex-direction: column; align-items: stretch !important; gap: 10px; }
-            .toolbar-container .control-item { width: 100%; justify-content: space-between; }
-            .toolbar-container select { flex: 1; max-width: 60%; box-sizing: border-box; }
-            .toolbar-container button { width: 100%; }
-            .card-container { grid-template-columns: 1fr !important; }
-            .modal-box { width: 95%; padding: 20px; }
+            body { padding: 10px; }
+            h1 { font-size: 18px; text-align: center; width: 100%; }
+            .header-container { justify-content: center; margin-bottom: 15px; gap: 10px; }
+            .btn-wrapper { justify-content: center; width: 100%; gap: 6px; }
+            .btn { padding: 8px 6px; font-size: 11px; flex: 1 1 calc(50% - 4px); text-align: center; }
+            
+            /* 頂部財務卡片手機版垂直排列 */
+            .top-grid { grid-template-columns: 1fr !important; gap: 10px !important; margin-bottom: 15px !important; }
+            .top-grid > div:last-child { display: none !important; } /* 隱藏大型圖表防擠壓 */
+            #dashboard-zone { grid-template-columns: 1fr !important; gap: 8px !important; }
+            
+            /* 篩選工具列 */
+            .toolbar-container { flex-direction: column !important; align-items: stretch !important; gap: 10px !important; padding: 12px !important; }
+            .controls-wrapper { flex-direction: column !important; align-items: stretch !important; gap: 8px !important; width: 100%; }
+            .control-item { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+            .control-item select { width: 65% !important; max-width: none !important; font-size: 13px; padding: 6px !important; }
+            #exportBtn { width: 100%; text-align: center; padding: 10px; }
+            
+            /* 社區與房源卡片：確保所有社區都能完整垂直延伸顯示 */
+            #group-zone { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+            .group-section { padding: 12px; margin-bottom: 0px; width: 100%; }
+            .card-container { grid-template-columns: 1fr !important; gap: 12px; width: 100%; }
+            .bill-grid { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)) !important; } /* 手機版自動調整月份格子窄度 */
             .form-row-grid { grid-template-columns: 1fr; gap: 0; }
-            .status-badge { padding: 6px 10px; font-size: 12px; }
         }
     </style>
 </head>
@@ -82,7 +92,7 @@
 
     <div id="sync-overlay">
         <div class="spinner"></div>
-        <div id="sync-overlay-text">⏳ 資料儲存至雲端中，請稍候...</div>
+        <div id="sync-overlay-text">⏳ 資料儲存至雲端中...</div>
     </div>
 
     <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
@@ -91,11 +101,11 @@
     </form>
 
     <div class="header-container">
-        <div>
+        <div style="width: 100%; text-align: center;">
             <h1>物業資產財務管理系統 🏢</h1>
             <div class="subtitle" id="connection-status">🟢 系統載入中...</div>
         </div>
-        <div>
+        <div class="btn-wrapper">
             <button class="btn" id="viewerBtn" style="background-color: #0ea5e9; color: white;" onclick="toggleViewMode()">👁️ 完整閱覽登入</button>
             <button class="btn" id="adminBtn" style="background-color: #475569; color: white;" onclick="toggleAdminMode()">🔐 管理員登入</button>
             <button class="btn" id="headerSync" style="background-color: #64748b; color: white;" onclick="forceDownloadFromCloud()">🔄 雲端同步</button>
@@ -106,7 +116,7 @@
     </div>
     
     <div id="topFinancialGrid" class="top-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin-bottom: 25px;">
-        <div id="dashboard-zone" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;"></div >
+        <div id="dashboard-zone" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;"></div>
         <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; height: 230px; box-sizing: border-box;">
             <div style="font-size: 13px; color: #64748b; font-weight: 600; margin-bottom: 10px;">📊 年度歷史實收租金趨勢</div>
             <div style="height: 160px; position: relative;">
@@ -116,31 +126,25 @@
     </div>
 
     <div class="toolbar-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: white; padding: 15px 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
-        <div class="controls-wrapper" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-            <div class="control-item" style="display: flex; align-items: center; gap: 8px;">
+        <div class="controls-wrapper" style="display: flex; align-items: center; gap: 15px;">
+            <div class="control-item">
                 <span style="font-size: 14px; font-weight: 700; color: #1e293b;">📅 選擇年度：</span>
-                <select id="yearSelect" onchange="handleYearChange(this.value)" style="padding: 8px 14px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px; background: #ffffff; color:#2563eb; font-weight:700;">
+                <select id="yearSelect" onchange="handleYearChange(this.value)" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px; background: #ffffff; color:#2563eb; font-weight:700;">
                     <option value="2025">2025 年</option>
                     <option value="2026">2026 年</option>
                     <option value="2027">2027 年</option>
                     <option value="2028">2028 年</option>
                     <option value="2029">2029 年</option>
                     <option value="2030">2030 年</option>
-                    <option value="2031">2031 年</option>
-                    <option value="2032">2032 年</option>
-                    <option value="2033">2033 年</option>
-                    <option value="2034">2034 年</option>
-                    <option value="2035">2035 年</option>
-                    <option value="2036">2036 年</option>
                 </select>
             </div>
-            <div class="control-item" style="display: flex; align-items: center; gap: 8px;">
+            <div class="control-item">
                 <span style="font-size: 14px; font-weight: 600; color: #475569;">🔍 篩選條件：</span>
-                <select id="filterSelect" onchange="handleFilterChange(this.value)" style="padding: 8px 14px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px; background: #f8fafc; color:#1e293b; font-weight:600;">
+                <select id="filterSelect" onchange="handleFilterChange(this.value)" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px; background: #f8fafc; color:#1e293b; font-weight:600;">
                     <option value="all">1. 全部房源</option>
-                    <option value="vacant">2. 有房間但沒租約 (待租中房源)</option>
+                    <option value="vacant">2. 待租中房源</option>
                     <option value="unpaid">3. 未繳租金</option>
-                    <optgroup label="4. 房屋群組 (單獨社區顯示)" id="dropdownGroupSection">
+                    <optgroup label="4. 房屋群組 (單獨社區)" id="dropdownGroupSection">
                     </optgroup>
                 </select>
             </div>
@@ -150,6 +154,7 @@
     
     <div id="group-zone"></div>
 
+    <!-- 各種彈出視窗（Modal） -->
     <div class="modal-overlay" id="groupModal">
         <div class="modal-box">
             <div class="modal-title" id="groupModalTitle">📍 新增社區群組</div>
@@ -158,7 +163,7 @@
                 <label>社區/街道名稱</label>
                 <input type="text" id="inputGroupName" placeholder="例如：福中街">
             </div>
-            <div class="modal-buttons">
+            <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
                 <button class="btn" style="background-color:#cbd5e1;" onclick="closeGroupModal()">取消</button>
                 <button class="btn btn-primary" id="submitGroupBtn" onclick="submitGroup()">確定建立</button>
             </div>
@@ -183,32 +188,32 @@
             <div class="form-row-grid">
                 <div class="form-group">
                     <label>租客姓名</label>
-                    <input type="text" id="inputTenant" placeholder="Example: 林小華">
+                    <input type="text" id="inputTenant" placeholder="例如：林小華">
                 </div>
                 <div class="form-group">
                     <label>租合約期</label>
-                    <input type="text" id="inputPeriod" value="2026/06 ~ 2027/05" placeholder="格式範例: 2026/06 ~ 2027/05">
+                    <input type="text" id="inputPeriod" value="2026/06 ~ 2027/05">
                 </div>
             </div>
             <div class="form-group">
                 <label>📝 房源備註事項</label>
-                <input type="text" id="inputMemo" placeholder="例如：冷氣剛換新、車位在B2...">
+                <input type="text" id="inputMemo" placeholder="備註細節...">
             </div>
 
             <div class="form-group">
-                <label>⚡ 獨立水電費計算機 (自動匯入臨時特殊月費)</label>
-                <div class="custom-item-box" style="background-color: #f0fdf4; border-color: #bbf7d0; margin-bottom: 10px;">
-                    <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 0.8fr; gap: 6px; margin-bottom: 8px;">
-                        <input type="text" id="calcName" value="電費" style="padding:6px;">
-                        <input type="number" id="calcPrev" placeholder="上次" style="padding:6px;">
-                        <input type="number" id="calcCurr" placeholder="本次" style="padding:6px;">
-                        <input type="number" id="calcRate" value="5" placeholder="單價" style="padding:6px;">
+                <label>⚡ 獨立水電費計算機</label>
+                <div style="background-color: #f0fdf4; border: 1px dashed #bbf7d0; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                    <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 0.8fr; gap: 4px; margin-bottom: 8px;">
+                        <input type="text" id="calcName" value="電費" style="padding:4px; font-size:12px;">
+                        <input type="number" id="calcPrev" placeholder="上次" style="padding:4px; font-size:12px;">
+                        <input type="number" id="calcCurr" placeholder="本次" style="padding:4px; font-size:12px;">
+                        <input type="number" id="calcRate" value="5" style="padding:4px; font-size:12px;">
                     </div>
-                    <button class="btn" style="background-color: #16a34a; color: white; width: 100%; padding: 6px; font-size: 12px; font-weight: bold; border-radius: 4px;" onclick="calculateUtility()">🧮 計算並匯入下方項目</button>
+                    <button class="btn" style="background-color: #16a34a; color: white; width: 100%; padding: 6px; font-size: 12px;" onclick="calculateUtility()">🧮 計算並匯入</button>
                 </div>
             </div>
 
-            <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 15px 0;">
+            <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 12px 0;">
             <div class="form-row-grid">
                 <div class="form-group">
                     <label>💰 每月基本租金</label>
@@ -219,34 +224,9 @@
                     <input type="number" id="inputDeposit" value="24000">
                 </div>
             </div>
-            <div class="form-row-grid">
-                <div class="form-group">
-                    <label>🛡️ 每月管理費</label>
-                    <input type="number" id="inputManage" value="0">
-                </div>
-                <div class="form-group">
-                    <label>🚗 每月車位費</label>
-                    <input type="number" id="inputParking" value="0">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>🐾 每月寵物清潔費</label>
-                <input type="number" id="inputPet" value="0">
-            </div>
-            <div class="form-group">
-                <label>✍️ 其他臨時特殊月費</label>
-                <div class="custom-item-box" id="customItemBoxSection">
-                    <div class="custom-input-group">
-                        <input type="text" id="customName" placeholder="項目名稱" style="flex: 2;">
-                        <input type="number" id="customAmount" placeholder="金額" style="flex: 1;">
-                        <button class="btn btn-primary" style="padding: 0 12px; background-color: #475569;" onclick="addCustomBillItem()">＋加入</button>
-                    </div>
-                    <ul class="custom-list" id="customListVisual"></ul>
-                </div>
-            </div>
-            <div class="modal-buttons">
+            <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
                 <button class="btn" style="background-color:#cbd5e1;" onclick="closeRoomModal()">取消</button>
-                <button class="btn btn-primary" style="background-color: #10b981;" id="submitRoomBtn" onclick="submitRoom()">確認新增</button>
+                <button class="btn btn-primary" style="background-color: #10b981;" id="submitRoomBtn" onclick="submitRoom()">確認</button>
             </div>
         </div>
     </div>
@@ -254,20 +234,30 @@
     <script>
         const CLOUD_API_URL = "https://script.google.com/macros/s/AKfycbw-uwKwzY6mIDtQOkC81pUj68huKnx2qZ3PKIbQtKfPycfyGpqhC4ln1Um-idpTBNrGbw/exec";
         
-        // 🔒 權限與密碼管理
         let isAdmin = false;
         let isFullView = false; 
         const ADMIN_PASSWORD = "2007"; 
         const VIEWER_PASSWORD = "5678"; 
 
-        // 核心資料字典與當前年度指引
         let myData = {}; 
         let selectedYear = "2026"; 
         let tempCustomBills = [];
-        let currentFilter = 'all'; // 預設顯示全部房源
+        let currentFilter = 'all'; 
         let chartInstance = null;
 
-        // 初始化與老資料相容性遷移邏輯
+        // 萬用月份格式統一函數，解決收入變成 0 的核心關鍵
+        function normalizeYM(str) {
+            if(!str) return "";
+            let clean = str.replace(/\s+/g, "").replace(/-/g, "/");
+            let parts = clean.split("/");
+            if(parts.length >= 2) {
+                let y = parts[0];
+                let m = String(parseInt(parts[1], 10)).padStart(2, '0');
+                return `${y}/${m}`;
+            }
+            return clean;
+        }
+
         try {
             let localData = localStorage.getItem("date_driven_landlord_data");
             if (localData && localData !== "[]" && localData !== "undefined") {
@@ -278,57 +268,51 @@
                     myData = parsed;
                 }
             }
-        } catch (e) { console.error("本地資料讀取異常", e); }
+        } catch (e) { console.error(e); }
 
         if (!myData[selectedYear]) myData[selectedYear] = [];
         document.getElementById("yearSelect").value = selectedYear;
 
-        // 核心權限攔截器
         function checkPermission() {
             if (!isAdmin) {
-                alert("🔒 目前為「唯讀模式」，不允許執行此操作。\n若需使用，請先點擊網頁右上角的「管理員登入」。");
+                alert("🔒 目前為唯讀模式，請點擊右上角「管理員登入」。");
                 return false;
             }
             return true;
         }
 
-        // 開關完整閱覽模式
         function toggleViewMode() {
             if (isFullView) {
                 isFullView = false;
-                alert("已切換回「訪客看房模式」，系統將自動鎖定僅顯示待租中房源。");
+                alert("已切換回「訪客看房模式」，系統將隱藏敏感數據。");
             } else {
-                let pass = prompt("🔑 請輸入閱覽者密碼以查看完整房源與財務資產：");
+                let pass = prompt("🔑 請輸入閱覽者密碼：");
                 if (pass === VIEWER_PASSWORD) {
                     isFullView = true;
                     alert("🔓 密碼正確！已解鎖完整房源瀏覽與報表檢視模式。");
                 } else if (pass !== null) {
-                    alert("❌ 密碼錯誤，保持訪客模式！");
+                    alert("❌ 密碼錯誤！");
                 }
             }
             renderDashboard(false);
         }
 
-        // 開關管理員登入模式
         function toggleAdminMode() {
             if (isAdmin) {
-                isAdmin = false;
-                isFullView = false;
-                alert("已登出管理員身分。系統切換回「訪客看房模式」。");
+                isAdmin = false; isFullView = false;
+                alert("已登出管理員身份。");
             } else {
                 let pass = prompt("🔑 請輸入管理員密碼：");
                 if (pass === ADMIN_PASSWORD) {
-                    isAdmin = true;
-                    isFullView = true; 
-                    alert("🔓 密碼正確！已開啟主控編輯權限。");
+                    isAdmin = true; isFullView = true; 
+                    alert("🔓 管理權限已開啟。");
                 } else if (pass !== null) {
-                    alert("❌ 密碼錯誤，保持訪客模式！");
+                    alert("❌ 密碼錯誤！");
                 }
             }
             renderDashboard(false);
         }
 
-        // 智慧控管 UI 顯示整合權限機制
         function updateAuthUI() {
             const adminBtn = document.getElementById("adminBtn");
             const viewerBtn = document.getElementById("viewerBtn");
@@ -340,66 +324,46 @@
             const exportBtn = document.getElementById("exportBtn");
             
             if (isAdmin) {
-                adminBtn.innerHTML = "🔓 管理模式 (登出)";
+                adminBtn.innerHTML = "🔓 登出管理";
                 adminBtn.style.backgroundColor = "#dc2626";
-                if(btnAddGroup) btnAddGroup.style.display = "inline-block";
-                if(btnAddRoom) btnAddRoom.style.display = "inline-block";
-                if(btnSync) btnSync.style.display = "inline-block";
-                if(btnBackup) btnBackup.style.display = "inline-block";
+                if(btnAddGroup) btnAddGroup.style.display = "inline-flex";
+                if(btnAddRoom) btnAddRoom.style.display = "inline-flex";
+                if(btnSync) btnSync.style.display = "inline-flex";
+                if(btnBackup) btnBackup.style.display = "inline-flex";
                 viewerBtn.style.display = "none";
             } else {
-                adminBtn.innerHTML = "🔐 管理員登入";
+                adminBtn.innerHTML = "🔐 管理登入";
                 adminBtn.style.backgroundColor = "#475569";
                 if(btnAddGroup) btnAddGroup.style.display = "none";
                 if(btnAddRoom) btnAddRoom.style.display = "none";
                 if(btnSync) btnSync.style.display = "none";
                 if(btnBackup) btnBackup.style.display = "none";
-                viewerBtn.style.display = "inline-block";
-                
-                if (isFullView) {
-                    viewerBtn.innerHTML = "👁️ 模式：完整閱覽 (切回訪客)";
-                    viewerBtn.style.backgroundColor = "#0284c7";
-                } else {
-                    viewerBtn.innerHTML = "👁️ 完整閱覽登入";
-                    viewerBtn.style.backgroundColor = "#0ea5e9";
-                }
+                viewerBtn.style.display = "inline-flex";
+                viewerBtn.innerHTML = isFullView ? "👁️ 唯讀中(點此切回訪客)" : "👁️ 完整閱覽登入";
             }
 
             if (isAdmin || isFullView) {
                 if(topFinancialGrid) topFinancialGrid.style.display = "grid";
-                if(exportBtn) exportBtn.style.display = "inline-block";
+                if(exportBtn) exportBtn.style.display = "inline-flex";
             } else {
                 if(topFinancialGrid) topFinancialGrid.style.display = "none";
                 if(exportBtn) exportBtn.style.display = "none";
             }
         }
 
-        // 核心輔助工具：解析合約並吐出 12 個連續的 YYYY/MM 字串
         function generateLeaseMonths(periodStr) {
             let months = [];
             let defaultYear = parseInt(selectedYear) || new Date().getFullYear();
-            
-            // 預設防呆回傳：若沒租約，回傳當前選定年度的 1~12 月
             let fallback = [];
-            for(let i=1; i<=12; i++) {
-                fallback.push(`${defaultYear}/${String(i).padStart(2, '0')}`);
-            }
-
+            for(let i=1; i<=12; i++) fallback.push(`${defaultYear}/${String(i).padStart(2, '0')}`);
             if (!periodStr || !periodStr.includes("~")) return fallback;
-            
             try {
                 let parts = periodStr.split("~");
-                let startPart = parts[0].trim(); // e.g. "2026/06"
-                
-                let startYM = startPart.split("/");
-                let sYear = parseInt(startYM[0]);
-                let sMonth = parseInt(startYM[1]);
-                
+                let startPart = parts[0].trim().split("/");
+                let sYear = parseInt(startPart[0]), sMonth = parseInt(startPart[1]);
                 if(isNaN(sYear) || isNaN(sMonth)) return fallback;
-
                 for(let i = 0; i < 12; i++) {
-                    let currentMonth = sMonth + i;
-                    let currentYear = sYear;
+                    let currentMonth = sMonth + i, currentYear = sYear;
                     if (currentMonth > 12) {
                         currentYear += Math.floor((currentMonth - 1) / 12);
                         currentMonth = ((currentMonth - 1) % 12) + 1;
@@ -407,19 +371,15 @@
                     months.push(`${currentYear}/${String(currentMonth).padStart(2, '0')}`);
                 }
                 return months;
-            } catch(e) {
-                return fallback;
-            }
+            } catch(e) { return fallback; }
         }
 
-        // 動態刷新整合篩選選單項目
         function updateFilterDropdown(forceRefreshHTML = false) {
             const filterSelect = document.getElementById("filterSelect");
             const groupSection = document.getElementById("dropdownGroupSection");
             if (!filterSelect || !groupSection) return;
             
             let activeData = myData[selectedYear] || [];
-            
             if (forceRefreshHTML || groupSection.children.length !== activeData.length) {
                 let html = "";
                 activeData.forEach((g, idx) => {
@@ -427,113 +387,58 @@
                 });
                 groupSection.innerHTML = html;
             }
-            
-            if (currentFilter.startsWith('group_')) {
-                let idx = parseInt(currentFilter.replace('group_', ''));
-                if (isNaN(idx) || idx >= activeData.length) {
-                    currentFilter = 'all';
-                }
-            }
             filterSelect.value = currentFilter;
         }
 
-        // 雲端同步下載還原邏輯
-        if (myData[selectedYear].length === 0) {
-            document.getElementById("connection-status").innerText = "⏳ 嘗試從雲端還原資料...";
-            fetch(`${CLOUD_API_URL}?t=${Date.now()}`)
-                .then(res => res.json())
-                .then(cloudJson => {
-                    if (cloudJson) {
-                        if (Array.isArray(cloudJson)) {
-                            myData = {}; myData[selectedYear] = cloudJson;
-                        } else {
-                            myData = cloudJson;
-                        }
-                        if (!myData[selectedYear]) myData[selectedYear] = [];
-                        localStorage.setItem("date_driven_landlord_data", JSON.stringify(myData));
-                        renderDashboard(false, true);
-                        document.getElementById("connection-status").innerText = `🟢 雲端資料同步成功 (${selectedYear})`;
-                    } else {
-                        document.getElementById("connection-status").innerText = "🟢 系統就緒 (目前資料庫為空)";
-                    }
-                }).catch(() => document.getElementById("connection-status").innerText = "⚠️ 雲端連線失敗 (單機模式)");
-        }
+        // 讀取初始化
+        document.getElementById("connection-status").innerText = "⏳ 雲端同步資料中...";
+        fetch(`${CLOUD_API_URL}?t=${Date.now()}`)
+            .then(res => res.json())
+            .then(cloudJson => {
+                if (cloudJson) {
+                    myData = Array.isArray(cloudJson) ? { [selectedYear]: cloudJson } : cloudJson;
+                    if (!myData[selectedYear]) myData[selectedYear] = [];
+                    localStorage.setItem("date_driven_landlord_data", JSON.stringify(myData));
+                    renderDashboard(false, true);
+                    document.getElementById("connection-status").innerText = `🟢 雲端同步成功 (${selectedYear})`;
+                } else {
+                    document.getElementById("connection-status").innerText = "🟢 資料庫就緒";
+                }
+            }).catch(() => {
+                document.getElementById("connection-status").innerText = "⚠️ 離線單機模式";
+                renderDashboard(false, true);
+            });
 
-        // 年度切換
         function handleYearChange(year) {
             selectedYear = year;
-            if (!myData[selectedYear] || myData[selectedYear].length === 0) {
-                let prevYear = String(Number(selectedYear) - 1);
-                if (myData[prevYear] && myData[prevYear].length > 0 && isAdmin) {
-                    if (confirm(`📅 偵測到 ${selectedYear} 年尚未建立帳本。\n\n是否要從前一年 (${prevYear} 年) 自動複製結構？`)) {
-                        myData[selectedYear] = cloneStructureForNewYear(myData[prevYear]);
-                    } else {
-                        myData[selectedYear] = [];
-                    }
-                } else {
-                    myData[selectedYear] = [];
-                }
-            }
+            if (!myData[selectedYear]) myData[selectedYear] = [];
             currentFilter = 'all'; 
-            document.getElementById("connection-status").innerText = `🟢 目前顯示：${selectedYear} 年度帳本`;
             renderDashboard(true, true);
-        }
-
-        function cloneStructureForNewYear(oldYearData) {
-            return oldYearData.map(g => {
-                return {
-                    groupName: g.groupName,
-                    rooms: g.rooms.map(r => {
-                        let resetBills = r.bills.map(b => ({ ...b, paidDate: "" }));
-                        return {
-                            number: r.number, tenant: r.tenant, rentPeriod: r.rentPeriod, memo: r.memo,
-                            rent: r.rent, deposit: r.deposit, manage: r.manage, parking: r.parking, pet: r.pet,
-                            customTotal: r.customTotal, details: [...r.details], bills: resetBills, repairs: []
-                        };
-                    })
-                };
-            });
         }
 
         function forceDownloadFromCloud() {
             if (!checkPermission()) return;
-            if(!confirm("⚠️ 確定要從雲端下載最新多年度資料覆蓋目前畫面嗎？")) return;
-            
-            let currentLocalRaw = localStorage.getItem("date_driven_landlord_data");
-            if (currentLocalRaw) localStorage.setItem("date_driven_landlord_data_safety_snapshot", currentLocalRaw);
-
+            if(!confirm("確定拉取雲端完整多年度資料覆蓋目前畫面？")) return;
             document.getElementById("sync-overlay").style.display = "flex";
-            document.getElementById("sync-overlay-text").innerText = "⬇️ 從雲端同步完整帳本中...";
             fetch(`${CLOUD_API_URL}?t=${Date.now()}`)
                 .then(res => res.json())
                 .then(cloudJson => {
                     if (cloudJson) {
-                        if (Array.isArray(cloudJson)) {
-                            myData = {}; myData[selectedYear] = cloudJson;
-                        } else {
-                            myData = cloudJson;
-                        }
-                        if (!myData[selectedYear]) myData[selectedYear] = [];
+                        myData = Array.isArray(cloudJson) ? { [selectedYear]: cloudJson } : cloudJson;
                         localStorage.setItem("date_driven_landlord_data", JSON.stringify(myData));
                         currentFilter = 'all';
                         renderDashboard(false, true);
-                        alert("✅ 雲端同步完成！");
-                    } else { 
-                        alert("⚠️ 攔截警告：雲端回傳資料異常。"); 
+                        alert("✅ 雲端覆蓋還原完成！");
                     }
-                }).catch(() => alert("❌ 下載失敗。"))
-                .finally(() => document.getElementById("sync-overlay").style.display = "none");
+                }).finally(() => document.getElementById("sync-overlay").style.display = "none");
         }
 
         function downloadBackup() {
             if (!checkPermission()) return;
-            if (Object.keys(myData).length === 0) return alert("沒有資料可供下載！");
             let blob = new Blob([JSON.stringify(myData, null, 4)], { type: "application/json" });
-            let today = new Date();
-            let dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
             let a = document.createElement("a");
             a.href = URL.createObjectURL(blob);
-            a.download = `物業多年度完整資產備份_${dateStr}.json`;
+            a.download = `物業多年度完整資產備份.json`;
             a.click();
         }
 
@@ -541,33 +446,25 @@
             if (!isAdmin) return; 
             let overlay = document.getElementById("sync-overlay");
             if(overlay) overlay.style.display = "flex";
-            
             let currentJson = JSON.stringify(myData);
             localStorage.setItem("date_driven_landlord_data", currentJson);
             document.getElementById("formJsonField").value = currentJson;
             document.getElementById("cloud-form").submit();
-            setTimeout(() => { if(overlay) overlay.style.display = "none"; }, 2500);
+            setTimeout(() => { if(overlay) overlay.style.display = "none"; }, 1500);
         }
 
         function copyLineMessage(tenant, roomNum, billName, amount) {
-            let msg = `${tenant}您好，提醒您：您 ${roomNum} 室的 ${billName} 共計 $${amount.toLocaleString()} 元尚未入帳。若已匯款請忽略此訊息並提供帳號後五碼供核對，謝謝！`;
-            navigator.clipboard.writeText(msg).then(() => {
-                alert(`📋 【${tenant}】的催繳訊息已成功複製！`);
-            }).catch(() => alert("複製失敗"));
+            let msg = `${tenant}您好，提醒您：您 ${roomNum} 室的 ${billName} 共計 $${amount.toLocaleString()} 元尚未入帳。若已匯款請提供帳號後五碼核對，謝謝！`;
+            navigator.clipboard.writeText(msg).then(() => alert(`📋 催繳訊息已複製！`));
         }
 
         function checkLeaseExpiry(periodStr) {
             if (!periodStr || !periodStr.includes("~")) return { warning: false, text: "" };
             try {
                 let parts = periodStr.split("~");
-                let endPart = parts[1].trim(); 
-                let endYM = endPart.split("/");
-                let endYear = parseInt(endYM[0]);
-                let endMonth = parseInt(endYM[1]) - 1;
-                let endDate = new Date(endYear, endMonth + 1, 0); 
-                let today = new Date();
-                let timeDiff = endDate.getTime() - today.getTime();
-                let daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                let endYM = parts[1].trim().split("/");
+                let endDate = new Date(parseInt(endYM[0]), parseInt(endYM[1]), 0); 
+                let daysDiff = Math.ceil((endDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24));
                 if (daysDiff < 0) return { warning: true, text: "⚠️ 租約已過期！" };
                 if (daysDiff <= 45) return { warning: true, text: `⚠️ 租約剩 ${daysDiff} 天到期` };
             } catch(e) {}
@@ -576,17 +473,14 @@
 
         function calculateUtility() {
             let name = document.getElementById("calcName").value || "電費";
-            let prev = document.getElementById("calcPrev").value;
-            let curr = document.getElementById("calcCurr").value;
+            let prev = document.getElementById("calcPrev").value, curr = document.getElementById("calcCurr").value;
             let rate = Number(document.getElementById("calcRate").value) || 5;
             if (prev === "" || curr === "") return alert("請輸入完整度數！");
-            let pNum = Number(prev), cNum = Number(curr);
-            if (cNum < pNum) return alert("本次度數不能小於上次度數喔！");
-            let degrees = cNum - pNum;
+            let degrees = Number(curr) - Number(prev);
+            if (degrees < 0) return alert("本次度數小於上次度數！");
             let total = degrees * rate;
-            tempCustomBills.push({ name: `${name}(${degrees}度,${pNum}→${cNum})`, amount: total });
-            document.getElementById("customListVisual").innerHTML = tempCustomBills.map(item => `<li>${item.name}: (每月 +${item.amount.toLocaleString()})</li>`).join("");
-            document.getElementById("calcPrev").value = ""; document.getElementById("calcCurr").value = "";
+            tempCustomBills.push({ name: `${name}(${degrees}度)`, amount: total });
+            document.getElementById("customListVisual").innerHTML = tempCustomBills.map(item => `<li>${item.name}: +$${item.amount}</li>`).join("");
         }
 
         function handleFilterChange(val) {
@@ -596,56 +490,18 @@
 
         function exportToCSV() {
             let activeData = myData[selectedYear] || [];
-            if (!activeData.length) return alert("目前年度沒有資料可供匯出！");
-            let today = new Date();
-            let curYM = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}`;
-            let csvContent = `\ufeff年度,社區/街道,房號,租客,租約期,本月 (${curYM}) 應收金額,本月實收狀態,房源備註\n`;
-            
-            activeData.forEach(g => {
-                g.rooms.forEach(r => {
-                    let mBill = r.bills.find(b => b.name === curYM);
-                    let status = (mBill && mBill.paidDate) ? `已入帳(${mBill.paidDate})` : "未入帳";
-                    let amt = mBill ? mBill.amount : 0;
-                    csvContent += `"${selectedYear}","${g.groupName}","${r.number}","${r.tenant}","${r.rentPeriod}","$${amt.toLocaleString()}","${status}","${(r.memo || '').replace(/"/g, '""')}"\n`;
-                });
-            });
-            
+            let csvContent = `\ufeff年度,社區/街道,房號,租客,租約期,應收,狀態\n`;
+            activeData.forEach(g => g.rooms.forEach(r => {
+                let mBill = r.bills[0];
+                csvContent += `"${selectedYear}","${g.groupName}","${r.number}","${r.tenant}","${r.rentPeriod}","$${mBill?mBill.amount:0}","${(mBill&&mBill.paidDate)?'已收':'未收'}"\n`;
+            }));
             let blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-            let a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
-            a.download = `物業收租月報表_${selectedYear}_${curYM.replace('/', '_')}.csv`;
-            a.click();
+            let a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+            a.download = `收租月報.csv`; a.click();
         }
 
-        function addRepairLog(gIdx, rIdx) {
-            if (!checkPermission()) return;
-            let input = prompt("🛠️ 新增修繕與事件紀錄\n請輸入格式：『項目名稱,金額』\n例如：修洗臉盆,1200");
-            if (!input) return;
-            let parts = input.split(",");
-            let name = parts[0]?.trim();
-            let cost = Number(parts[1]?.trim()) || 0;
-            if (!name) return alert("項目名稱不可為空！");
-            
-            let activeData = myData[selectedYear] || [];
-            if (!activeData[gIdx].rooms[rIdx].repairs) activeData[gIdx].rooms[rIdx].repairs = [];
-            let today = new Date();
-            let dateStr = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
-            
-            activeData[gIdx].rooms[rIdx].repairs.push({ date: dateStr, name, cost });
-            renderDashboard();
-        }
-
-        function deleteRepairLog(gIdx, rIdx, repIdx) {
-            if (!checkPermission()) return;
-            if (confirm("確定要刪除這筆修繕事件紀錄嗎？")) {
-                let activeData = myData[selectedYear] || [];
-                activeData[gIdx].rooms[rIdx].repairs.splice(repIdx, 1);
-                renderDashboard();
-            }
-        }
-
-        // 🛠️ 升級版：完整支援 2603、06/08、2026/03/15 等全多樣格式解析
         function drawChart() {
+            if (window.innerWidth <= 768) return;
             let monthlyCashflow = Array(12).fill(0);
             let activeData = myData[selectedYear] || [];
             
@@ -653,74 +509,29 @@
                 if (b.paidDate && b.paidDate.trim() !== "") {
                     let cleaned = b.paidDate.trim();
                     let mIdx = -1;
-
-                    // 防呆核心：先檢查是否為純 4 位數數字 (例如 2603)
                     if (/^\d{4}$/.test(cleaned)) {
-                        let shortYear = "20" + cleaned.substring(0, 2); // "26" -> "2026"
-                        let monthStr = cleaned.substring(2, 4);        // "03" -> "03"
-                        
-                        if (shortYear === selectedYear) {
-                            mIdx = parseInt(monthStr) - 1;
-                        }
+                        if ("20" + cleaned.substring(0, 2) === selectedYear) mIdx = parseInt(cleaned.substring(2, 4)) - 1;
                     } else {
-                        // 如果不是 4 位純數字，則走傳統標準文字日期切分邏輯
-                        let matches = cleaned.match(/\d+/g); 
-                        if (matches && matches.length > 0) {
-                            if (matches.length >= 3) {
-                                // 格式如 "2026/06/08"
-                                let yearStr = matches[0];
-                                let monthStr = matches[1];
-                                if (yearStr === selectedYear || yearStr.endsWith(selectedYear.substring(2))) {
-                                    mIdx = parseInt(monthStr) - 1;
-                                }
-                            } else if (matches.length === 2) {
-                                // 格式如 "06/08"
-                                mIdx = parseInt(matches[0]) - 1;
-                            } else if (matches.length === 1) {
-                                // 格式如 "6月" 或 "6"
-                                mIdx = parseInt(matches[0]) - 1;
-                            }
-                        }
+                        let matches = cleaned.match(/\d+/g);
+                        if (matches && matches.length >= 2 && matches[0] === selectedYear) mIdx = parseInt(matches[1]) - 1;
                     }
-                    
-                    // 月份安全區間與累加
-                    if (mIdx >= 0 && mIdx < 12) {
-                        monthlyCashflow[mIdx] += b.amount;
-                    }
+                    if (mIdx >= 0 && mIdx < 12) monthlyCashflow[mIdx] += b.amount;
                 }
             })));
 
             let ctx = document.getElementById('revenueChart');
             if (!ctx) return;
             if (chartInstance) chartInstance.destroy();
-
             chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
-                    datasets: [{
-                        label: `${selectedYear} 年實收租金現金流`,
-                        data: monthlyCashflow,
-                        borderColor: '#2563eb',
-                        backgroundColor: 'rgba(37, 99, 235, 0.08)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.3
-                    }]
+                    datasets: [{ data: monthlyCashflow, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.05)', borderWidth: 2, fill: true }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-                        x: { grid: { display: false } }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
         }
 
-        // 核心渲染主控盤
         function renderDashboard(triggerSave = true, forceRefreshDropdown = false) {
             updateFilterDropdown(forceRefreshDropdown); 
             updateAuthUI(); 
@@ -728,23 +539,20 @@
             let groupZone = document.getElementById("group-zone");
             let dashZone = document.getElementById("dashboard-zone");
             let today = new Date();
-            let curYM = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}`;
+            // 格式統一化
+            let curYM = normalizeYM(`${today.getFullYear()}/${today.getMonth() + 1}`);
             let activeData = myData[selectedYear] || [];
 
             if (!activeData.length) {
-                dashZone.innerHTML = ""; groupZone.innerHTML = `
-                    <div style="text-align:center; padding:60px; color:#64748b; background:white; border-radius:16px; border:1px dashed #cbd5e1; margin-top:20px;">
-                        <p style="font-size:18px; margin-bottom:12px;">👋 歡迎來到 ${selectedYear} 年度帳本！</p>
-                        ${isAdmin ? `<button class="btn btn-primary" onclick="openGroupModal()">＋ 建立此年度的第一個社區</button>` : `<p style="font-size:14px; color:#2563eb; font-weight:bold;">🔒 請登入管理員以新增社區資產</p>`}
-                    </div>`;
-                drawChart();
+                dashZone.innerHTML = ""; 
+                groupZone.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b; background:white; border-radius:16px; border:1px dashed #cbd5e1; margin-top:10px;"><p>👋 歡迎使用！請先點擊右上角新增社區與房源。</p></div>`;
                 if(triggerSave) saveToCloud();
                 return;
             }
 
             let dashExpected = 0, dashPaid = 0, dashUnpaid = 0;
             activeData.forEach(g => g.rooms.forEach(r => r.bills.forEach(b => {
-                if (b.name === curYM) {
+                if (normalizeYM(b.name) === curYM) {
                     dashExpected += b.amount;
                     if (b.paidDate && b.paidDate.trim() !== "") dashPaid += b.amount;
                     else dashUnpaid += b.amount;
@@ -752,163 +560,104 @@
             })));
 
             dashZone.innerHTML = `
-                <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #2563eb; display:flex; flex-direction:column; justify-content:center;">
-                    <div style="font-size: 11px; color: #64748b; font-weight: 600;">本月 (${curYM}) 預期應收</div>
-                    <div style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 4px;">$${dashExpected.toLocaleString()}</div>
-                </div>
-                <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #10b981; display:flex; flex-direction:column; justify-content:center;">
-                    <div style="font-size: 11px; color: #64748b; font-weight: 600;">本月 (${curYM}) 實收入帳</div>
-                    <div style="font-size: 18px; font-weight: 700; color: #166534; margin-top: 4px;">$${dashPaid.toLocaleString()}</div>
-                </div>
-                <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #ef4444; display:flex; flex-direction:column; justify-content:center;">
-                    <div style="font-size: 11px; color: #64748b; font-weight: 600;">本月 (${curYM}) 剩餘待繳</div>
-                    <div style="font-size: 18px; font-weight: 700; color: #991b1b; margin-top: 4px;">$${dashUnpaid.toLocaleString()}</div>
-                </div>`;
+                <div style="background: white; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #2563eb;"><div style="font-size: 11px; color:#64748b;">本月預期應收</div><div style="font-size: 16px; font-weight:700;">$${dashExpected.toLocaleString()}</div></div>
+                <div style="background: white; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #10b981;"><div style="font-size: 11px; color:#64748b;">本月實收入帳</div><div style="font-size: 16px; font-weight:700; color:#166534;">$${dashPaid.toLocaleString()}</div></div>
+                <div style="background: white; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #ef4444;"><div style="font-size: 11px; color:#64748b;">本月剩餘待繳</div><div style="font-size: 16px; font-weight:700; color:#991b1b;">$${dashUnpaid.toLocaleString()}</div></div>`;
 
-            groupZone.innerHTML = activeData.map((group, gIdx) => {
+            let mainHTML = "";
+            activeData.forEach((group, gIdx) => {
+                // 修正連動條件：確保手機與網頁對 group_x 的解讀 100% 一致
                 if (currentFilter.startsWith('group_')) {
                     let targetGIdx = currentFilter.replace('group_', '');
-                    if (String(gIdx) !== targetGIdx) return '';
+                    if (String(gIdx) !== targetGIdx) return;
                 }
 
                 let filteredRooms = group.rooms.filter(room => {
                     let t = (room.tenant || "").trim();
-                    let p = (room.rentPeriod || "").trim();
-                    let isVacant = t === "" || t.includes("待租") || t === "無" || t === "新租客" || p === "" || !p.includes("~");
-
-                    if (!isAdmin && !isFullView) {
-                        return isVacant;
-                    }
-
-                    if (currentFilter === 'vacant') {
-                        return isVacant;
-                    }
-
+                    let isVacant = t === "" || t.includes("待租");
+                    if (!isAdmin && !isFullView) return isVacant;
+                    if (currentFilter === 'vacant') return isVacant;
                     if (currentFilter === 'unpaid') {
-                        let mBill = room.bills.find(b => b.name === curYM);
+                        let mBill = room.bills.find(b => normalizeYM(b.name) === curYM);
                         return mBill ? (!mBill.paidDate || mBill.paidDate.trim() === "") : false;
                     }
-
                     return true; 
                 });
 
-                if (filteredRooms.length === 0) return '';
+                if (filteredRooms.length === 0 && currentFilter !== 'all' && !currentFilter.startsWith('group_')) return;
 
-                return `
+                let cardsHTML = filteredRooms.map((room) => {
+                    let originalRoomIdx = group.rooms.indexOf(room);
+                    let depositHTML = "", monthsHTML = "";
+                    
+                    room.bills.forEach((bill, bIdx) => {
+                        let isPaid = bill.paidDate && bill.paidDate.trim() !== "";
+                        let badge = `<span class="status-badge ${isPaid ? 'status-paid' : 'status-unpaid'}" onclick="changePaidDate(${gIdx},${originalRoomIdx},${bIdx})">${isPaid ? bill.paidDate : '未收'}</span>`;
+                        if(!isPaid && !bill.name.includes("押金")) {
+                            badge = `<div style="display:flex; gap:2px; width:100%;">${badge}<button class="action-btn" style="color:#06b6d4; font-size:11px;" onclick="event.stopPropagation(); copyLineMessage('${room.tenant}', '${room.number}', '${bill.name}', ${bill.amount})">💬</button></div>`;
+                        }
+                        if (bill.name.includes("押金")) {
+                            depositHTML = `<div class="extra-row"><span>${bill.name}: <strong>$${bill.amount}</strong></span><div style="width:70px;">${badge}</div></div>`;
+                        } else {
+                            let borderStyle = (normalizeYM(bill.name) === curYM) ? 'border: 1px solid #2563eb; background: #eff6ff;' : '';
+                            monthsHTML += `<div class="bill-row" style="${borderStyle}"><span>${bill.name}</span><strong>$${bill.amount}</strong>${badge}</div>`;
+                        }
+                    });
+
+                    let expiry = checkLeaseExpiry(room.rentPeriod);
+                    return `
+                        <div class="${expiry.warning ? 'room-card expiry-warning' : 'room-card'}">
+                            ${isAdmin ? `<div class="card-actions"><button class="action-btn edit-btn" onclick="openEditRoomModal(${gIdx},${originalRoomIdx})">✏️</button><button class="action-btn delete-btn" onclick="deleteRoom(${gIdx},${originalRoomIdx})">✕</button></div>` : ''}
+                            <div class="room-number">🚪 ${room.number} 室</div>
+                            <div class="info-text">👤 租客: <strong>${room.tenant}</strong></div>
+                            <div class="info-text">📅 租期: ${room.rentPeriod}</div>
+                            ${room.memo ? `<div class="memo-badge">📝 ${room.memo}</div>` : ''}
+                            <div class="ledger-box">
+                                <div class="ledger-title">📅 實收與入帳日</div>
+                                <div class="bill-grid">${depositHTML}${monthsHTML}</div>
+                            </div>
+                        </div>`;
+                }).join("");
+
+                mainHTML += `
                 <div class="group-section">
                     <div class="group-header">
-                        <h2 class="group-title">📍 ${group.groupName} (${filteredRooms.length} 個符合房源)
-                            ${isAdmin ? `<button class="group-edit-btn" onclick="openEditGroupModal(${gIdx})">✏️ 編輯名稱</button>` : ''}
-                        </h2>
+                        <h2 class="group-title">📍 ${group.groupName} (${filteredRooms.length} 房)</h2>
+                        ${isAdmin ? `<button class="group-edit-btn" onclick="openEditGroupModal(${gIdx})">✏️ 修改名稱</button>` : ''}
                     </div>
-                    <div class="card-container">
-                        ${filteredRooms.map((room, rIdx) => {
-                            let originalRoomIdx = group.rooms.indexOf(room);
-                            let depositHTML = "", monthsHTML = "";
-                            
-                            let leaseMonths = generateLeaseMonths(room.rentPeriod);
-                            
-                            room.bills.forEach((bill, bIdx) => {
-                                let displayName = bill.name;
-                                if(bill.name.startsWith("M") && !bill.name.includes("押金")) {
-                                    let oldMIdx = parseInt(bill.name.substring(1, 3)) - 1;
-                                    if(oldMIdx >= 0 && oldMIdx < leaseMonths.length) {
-                                        displayName = leaseMonths[oldMIdx];
-                                        bill.name = displayName; 
-                                    }
-                                }
-
-                                let isPaid = bill.paidDate && bill.paidDate.trim() !== "";
-                                let cursorStyle = isAdmin ? 'cursor: pointer;' : 'cursor: default;';
-                                let badge = `<span class="status-badge ${isPaid ? 'status-paid' : 'status-unpaid'}" style="${cursorStyle}" onclick="changePaidDate(${gIdx},${originalRoomIdx},${bIdx})">${isPaid ? bill.paidDate : '未收'}</span>`;
-                                
-                                if(!isPaid && !bill.name.includes("押金")) {
-                                    badge += ` <button class="action-btn" style="color:#06b6d4; font-size:12px; font-weight:bold;" onclick="event.stopPropagation(); copyLineMessage('${room.tenant}', '${room.number}', '${displayName}', ${bill.amount})">💬</button>`;
-                                }
-                                if (bill.name.includes("押金")) {
-                                    depositHTML = `<div class="extra-row"><span>${bill.name}: <strong>$${bill.amount.toLocaleString()}</strong></span>${badge}</div>`;
-                                } else {
-                                    let borderStyle = (displayName === curYM) ? 'border: 1px solid #2563eb; background: #eff6ff;' : '';
-                                    monthsHTML += `<div class="bill-row" style="${borderStyle}"><span>${displayName}: <strong>$${bill.amount.toLocaleString()}</strong></span>${badge}</div>`;
-                                }
-                            });
-
-                            let expiry = checkLeaseExpiry(room.rentPeriod);
-                            let repairsHTML = (room.repairs || []).map((rep, repIdx) => `
-                                <div style="display:flex; justify-content:space-between; font-size:11px; background:#f1f5f9; padding:4px 6px; border-radius:4px; margin-bottom:4px; color:#475569;">
-                                    <span>🛠️ ${rep.date} ${rep.name} (<strong>$${rep.cost.toLocaleString()}</strong>)</span>
-                                    ${isAdmin ? `<button style="border:none; background:none; color:#ef4444; cursor:pointer;" onclick="event.stopPropagation(); deleteRepairLog(${gIdx},${originalRoomIdx},${repIdx})">✕</button>` : ''}
-                                </div>
-                            `).join("");
-
-                            return `
-                                <div class="${expiry.warning ? 'room-card expiry-warning' : 'room-card'}">
-                                    ${isAdmin ? `
-                                    <div class="card-actions">
-                                        <button class="action-btn edit-btn" onclick="openEditRoomModal(${gIdx},${originalRoomIdx})">✏️</button>
-                                        <button class="action-btn delete-btn" onclick="deleteRoom(${gIdx},${originalRoomIdx})">✕</button>
-                                    </div>` : ''}
-                                    <div class="room-number">🚪 ${room.number} 室</div>
-                                    <div class="info-text">👤 租客: <strong>${room.tenant}</strong></div>
-                                    <div class="info-text">📅 租期: ${room.rentPeriod}</div>
-                                    ${expiry.text ? `<div class="expiry-badge">${expiry.text}</div>` : ''}
-                                    ${room.memo && room.memo.trim() ? `<div class="memo-badge">📝 備註: ${room.memo}</div>` : ''}
-                                    <div class="ledger-box">
-                                        <div class="ledger-title">📋 每月收費結構</div>
-                                        <ul class="memo-text">${(room.details || []).map(d => `<li>${d}</li>`).join("")}</ul>
-                                        
-                                        <div class="ledger-title">🛠️ 修繕與事件紀錄簿 ${isAdmin ? `<button style="color:#2563eb; background:none; border:none; cursor:pointer; font-weight:bold; font-size:11px;" onclick="addRepairLog(${gIdx},${originalRoomIdx})">＋新增</button>` : ''}</div>
-                                        <div style="max-height:80px; overflow-y:auto; margin-bottom:10px;">${repairsHTML || '<div style="font-size:11px; color:#94a3b8; text-align:center;">暫無紀錄</div>'}</div>
-
-                                        <div class="ledger-title">💵 單次收費項目</div>${depositHTML}
-                                        <div class="ledger-title" style="margin-top:10px;">📅 合約實收現金流 (入帳日)</div>
-                                        <div class="bill-grid">${monthsHTML}</div>
-                                    </div>
-                                </div>`;
-                        }).join("")}
-                    </div>
+                    <div class="card-container">${cardsHTML || '<div style="color:#94a3b8; font-size:13px; padding:10px;">查無符合條件房源</div>'}</div>
                 </div>`;
-            }).join("");
-            
-            if (isAdmin || isFullView) drawChart();
+            });
+
+            groupZone.innerHTML = mainHTML || `<div style="text-align:center; padding:40px; color:#64748b;">無符合篩選條件的社區資料</div>`;
+            drawChart();
             if(triggerSave) saveToCloud();
         }
 
         function changePaidDate(gIdx, rIdx, bIdx) {
             if (!checkPermission()) return;
             let bill = myData[selectedYear][gIdx].rooms[rIdx].bills[bIdx];
-            let newDate = prompt("請輸入入帳日期：\n(支援簡寫如 2603 代表 2026 年 3 月)", bill.paidDate || "");
+            let newDate = prompt("請輸入入帳日期 (例如: 2026/03/15，或輸入 2603 自動辨識)", bill.paidDate || "");
             if (newDate === null) return;
-            bill.paidDate = newDate.trim();
+            newDate = newDate.trim();
+            if (/^\d{4}$/.test(newDate)) {
+                newDate = `20${newDate.substring(0, 2)}/${newDate.substring(2, 4)}`;
+            }
+            bill.paidDate = newDate;
             renderDashboard(true, false); 
-        }
-
-        function addCustomBillItem() {
-            let name = document.getElementById("customName").value, amt = document.getElementById("customAmount").value;
-            if (!name || !amt) return alert("請填寫項目名稱與金額！");
-            tempCustomBills.push({ name, amount: Number(amt) });
-            document.getElementById("customListVisual").innerHTML = tempCustomBills.map(item => `<li>${item.name}: (每月 +${item.amount.toLocaleString()})</li>`).join("");
-            document.getElementById("customName").value = ""; document.getElementById("customAmount").value = "";
         }
 
         function openGroupModal() { 
             if (!checkPermission()) return;
-            document.getElementById("groupModalTitle").innerText = "📍 新增社區群組";
-            document.getElementById("submitGroupBtn").innerText = "確定建立";
-            document.getElementById("editGroupIndexFlag").value = ""; 
-            document.getElementById("inputGroupName").value = "";
+            document.getElementById("editGroupIndexFlag").value = ""; document.getElementById("inputGroupName").value = "";
             document.getElementById("groupModal").style.display = "flex"; 
         }
-
         function openEditGroupModal(gIdx) {
             if (!checkPermission()) return;
-            document.getElementById("groupModalTitle").innerText = "✏️ 編輯社區名稱";
-            document.getElementById("submitGroupBtn").innerText = "儲存修改";
             document.getElementById("editGroupIndexFlag").value = gIdx; 
             document.getElementById("inputGroupName").value = myData[selectedYear][gIdx].groupName;
             document.getElementById("groupModal").style.display = "flex";
         }
-
         function closeGroupModal() { document.getElementById("groupModal").style.display = "none"; }
         
         function openRoomModal() {
@@ -916,117 +665,57 @@
             let activeData = myData[selectedYear] || [];
             if (!activeData.length) return alert("請先建立社區！");
             document.getElementById("selectGroup").innerHTML = activeData.map((g, i) => `<option value="${i}">${g.groupName}</option>`).join("");
-            document.getElementById("roomModalTitle").innerText = "🚪 新增房源與財務設定";
-            document.getElementById("submitRoomBtn").innerText = "確認新增";
             document.getElementById("editGroupIndex").value = ""; document.getElementById("editRoomIndex").value = "";
-            document.getElementById("customItemBoxSection").style.opacity = "1";
-            document.getElementById("customItemBoxSection").style.pointerEvents = "auto";
             tempCustomBills = []; document.getElementById("customListVisual").innerHTML = "";
-            document.getElementById("inputRoomNumber").value = ""; document.getElementById("inputTenant").value = "";
-            document.getElementById("inputMemo").value = ""; document.getElementById("inputRent").value = "12000";
-            document.getElementById("inputDeposit").value = "24000"; document.getElementById("inputManage").value = "0";
-            document.getElementById("inputParking").value = "0"; document.getElementById("inputPet").value = "0";
-            document.getElementById("calcPrev").value = ""; document.getElementById("calcCurr").value = "";
             document.getElementById("roomModal").style.display = "flex";
         }
-
         function openEditRoomModal(gIdx, rIdx) {
             if (!checkPermission()) return;
             let room = myData[selectedYear][gIdx].rooms[rIdx];
-            openRoomModal(); 
-            document.getElementById("roomModalTitle").innerText = `✏️ 編輯 🚪 ${room.number} 室 房源財務`;
-            document.getElementById("submitRoomBtn").innerText = "儲存修改";
+            openRoomModal();
             document.getElementById("editGroupIndex").value = gIdx; document.getElementById("editRoomIndex").value = rIdx;
-            document.getElementById("customItemBoxSection").style.opacity = "0.5";
-            document.getElementById("customItemBoxSection").style.pointerEvents = "none";
-            document.getElementById("selectGroup").value = gIdx;
             document.getElementById("inputRoomNumber").value = room.number; document.getElementById("inputTenant").value = room.tenant;
-            document.getElementById("inputPeriod").value = room.rentPeriod; document.getElementById("inputMemo").value = room.memo || "";
-            document.getElementById("inputRent").value = room.rent || 12000; document.getElementById("inputDeposit").value = room.deposit !== undefined ? room.deposit : 24000;
-            document.getElementById("inputManage").value = room.manage || 0; document.getElementById("inputParking").value = room.parking || 0;
-            document.getElementById("inputPet").value = room.pet || 0;
+            document.getElementById("inputPeriod").value = room.rentPeriod; document.getElementById("inputRent").value = room.rent;
         }
-
         function closeRoomModal() { document.getElementById("roomModal").style.display = "none"; }
 
         function submitGroup() {
             if (!checkPermission()) return;
-            let name = document.getElementById("inputGroupName").value;
-            if(!name) return alert("請輸入名稱");
+            let name = document.getElementById("inputGroupName").value; if(!name) return;
             let flag = document.getElementById("editGroupIndexFlag").value;
-            if (!myData[selectedYear]) myData[selectedYear] = [];
-            
-            if (flag !== "") { myData[selectedYear][flag].groupName = name; } else { myData[selectedYear].push({ groupName: name, rooms: [] }); }
-            renderDashboard(true, true); 
-            closeGroupModal();
+            if (flag !== "") { myData[selectedYear][flag].groupName = name; } 
+            else { myData[selectedYear].push({ groupName: name, rooms: [] }); }
+            renderDashboard(true, true); closeGroupModal();
         }
 
         function submitRoom() {
             if (!checkPermission()) return;
             let gIdx = document.getElementById("selectGroup").value, num = document.getElementById("inputRoomNumber").value;
-            if(!num) return alert("請輸入房號");
-            
+            if(!num) return;
             let tenant = document.getElementById("inputTenant").value || "待租中", rent = Number(document.getElementById("inputRent").value);
-            let deposit = Number(document.getElementById("inputDeposit").value), period = document.getElementById("inputPeriod").value;
-            let memo = document.getElementById("inputMemo").value, manage = Number(document.getElementById("inputManage").value) || 0;
-            let parking = Number(document.getElementById("inputParking").value) || 0, pet = Number(document.getElementById("inputPet").value) || 0;
-
+            let period = document.getElementById("inputPeriod").value, memo = document.getElementById("inputMemo").value;
+            
             let oldGIdx = document.getElementById("editGroupIndex").value, oldRIdx = document.getElementById("editRoomIndex").value;
             let isEdit = oldGIdx !== "" && oldRIdx !== "";
 
-            let monthlyTotal = rent + manage + parking + pet;
-            let details = [`基本租金: $${rent.toLocaleString()}`];
-            if (manage > 0) details.push(`管理費: $${manage.toLocaleString()}`);
-            if (parking > 0) details.push(`車位費: $${parking.toLocaleString()}`);
-            if (pet > 0) details.push(`寵物費: $${pet.toLocaleString()}`);
-
-            let customTotal = 0;
-            if (isEdit) {
-                customTotal = myData[selectedYear][oldGIdx].rooms[oldRIdx].customTotal || 0;
-                monthlyTotal += customTotal;
-                let oldCustom = (myData[selectedYear][oldGIdx].rooms[oldRIdx].details || []).filter(d => !d.includes("基本租金") && !d.includes("管理費") && !d.includes("車位費") && !d.includes("寵物費"));
-                details = details.concat(oldCustom);
-            } else {
-                tempCustomBills.forEach(item => {
-                    monthlyTotal += item.amount; customTotal += item.amount;
-                    details.push(`${item.name}: $${item.amount.toLocaleString()}`);
-                });
-            }
-
             let bills = [];
-            if (deposit > 0) {
-                let oldDepDate = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => b.name.includes("押金"))?.paidDate || "") : "";
-                bills.push({ name: "🤝 房屋押金", amount: deposit, paidDate: oldDepDate });
-            }
-
             let leaseMonths = generateLeaseMonths(period);
             for (let i = 0; i < 12; i++) {
-                let mName = leaseMonths[i]; 
-                let oldDate = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => b.name === mName)?.paidDate || "") : "";
-                bills.push({ name: mName, amount: monthlyTotal, paidDate: oldDate });
+                let oldDate = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => normalizeYM(b.name) === normalizeYM(leaseMonths[i]))?.paidDate || "") : "";
+                bills.push({ name: leaseMonths[i], amount: rent, paidDate: oldDate });
             }
 
-            let repairs = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].repairs || []) : [];
-            let roomObj = { number: num, tenant, rentPeriod: period, memo, rent, deposit, manage, parking, pet, customTotal, details, bills, repairs };
-
-            if (isEdit) {
-                if (oldGIdx != gIdx) { myData[selectedYear][oldGIdx].rooms.splice(oldRIdx, 1); myData[selectedYear][gIdx].rooms.push(roomObj); } 
-                else { myData[selectedYear][gIdx].rooms[oldRIdx] = roomObj; }
-            } else { myData[selectedYear][gIdx].rooms[push](roomObj); }
-
-            renderDashboard(true, false); 
-            closeRoomModal();
+            let roomObj = { number: num, tenant, rentPeriod: period, memo, rent, bills, repairs: [] };
+            if (isEdit) { myData[selectedYear][gIdx].rooms[oldRIdx] = roomObj; } 
+            else { myData[selectedYear][gIdx].rooms.push(roomObj); }
+            
+            renderDashboard(true, false); closeRoomModal();
         }
 
         function deleteRoom(gIdx, rIdx) {
             if (!checkPermission()) return;
-            if(confirm("確定刪除？")) { 
-                myData[selectedYear][gIdx].rooms.splice(rIdx, 1); 
-                renderDashboard(true, true); 
-            }
+            if(confirm("確定刪除房源？")) { myData[selectedYear][gIdx].rooms.splice(rIdx, 1); renderDashboard(true, true); }
         }
-
-        renderDashboard(false, true);
     </script>
 </body>
 </html>
