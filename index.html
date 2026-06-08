@@ -484,7 +484,7 @@
                 rent: newRent,
                 roomImg: oldRoom.roomImg || "",
                 roomTags: oldRoom.roomTags || "",
-                memo: (oldRoom.memo || ") + " (續約新單)",
+                memo: (oldRoom.memo || "") + " (續約新單)",
                 bills: newBills,
                 repairs: []
             };
@@ -759,12 +759,10 @@
                         let isPaid = bill.paidDate && bill.paidDate.trim() !== "";
                         let badge = `<span class="status-badge ${isPaid ? 'status-paid' : 'status-unpaid'}" onclick="changePaidDate(${gIdx},${originalRoomIdx},${bIdx})">${isPaid ? bill.paidDate : '未收'}</span>`;
                         
-                        // 修正催繳按鈕邏輯：非月租金項目，只有在「未收」時才於按鈕右側疊加 LINE 催繳圖示
                         if(!isPaid && !isMonthlyRentBill(bill.name)) {
                             badge = `<div style="display:flex; gap:2px; width:100%;">${badge}<button class="action-btn" style="color:#06b6d4; font-size:11px;" onclick="event.stopPropagation(); copyLineMessage('${room.tenant}', '${room.number}', '${bill.name}', ${bill.amount})">💬</button></div>`;
                         }
                         
-                        // 【終極修正核心】：不再強制要求 !isPaid，不論已收未收，只要不是月租，通通塞進上方自訂區欄位
                         if (!isMonthlyRentBill(bill.name)) {
                             depositHTML += `<div class="extra-row"><span>${bill.name}: <strong>$${bill.amount}</strong></span><div style="width:70px;">${badge}</div></div>`;
                         } else {
@@ -875,6 +873,7 @@
             document.getElementById("inputRoomTags").value = room.roomTags || "";
             document.getElementById("inputMemo").value = room.memo || "";
             
+            // 修正：編輯時正確載入所有非租金費用
             tempCustomBills = (room.bills || []).filter(b => !isMonthlyRentBill(b.name));
             document.getElementById("customListVisual").innerHTML = tempCustomBills.map(item => `<li>${item.name}: $${item.amount}</li>`).join("");
         }
@@ -927,39 +926,22 @@
             let oldRIdx = document.getElementById("editRoomIndex").value;
             let isEdit = oldGIdx !== "" && oldRIdx !== "";
 
+            // --- 修正核心 ---
+            // 這裡確保 finalBills 完整包含「押金」+「計算機加進來的雜費」+「每月租金」
             let finalBills = [];
-            let trackedUniqueKeys = new Set();
             
+            // 1. 處理押金
             if (deposit > 0) {
                 let oldDepositPaid = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => b.name === "房屋押金")?.paidDate || "") : "";
                 finalBills.push({ name: "房屋押金", amount: deposit, paidDate: oldDepositPaid });
-                trackedUniqueKeys.add("房屋押金_" + deposit);
             }
 
+            // 2. 處理計算機已加入的自訂費用 (管理費、清潔費、電費等)
             tempCustomBills.forEach(cb => {
-                if(!isMonthlyRentBill(cb.name)) {
-                    let uniqueKey = cb.name + "_" + cb.amount;
-                    if(!trackedUniqueKeys.has(uniqueKey)) {
-                        let oldPaid = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => b.name === cb.name && b.amount === cb.amount)?.paidDate || "") : "";
-                        finalBills.push({ name: cb.name, amount: cb.amount, paidDate: cb.paidDate || oldPaid });
-                        trackedUniqueKeys.add(uniqueKey);
-                    }
-                }
+                finalBills.push(cb);
             });
 
-            if (isEdit) {
-                let oldRoom = myData[selectedYear][oldGIdx].rooms[oldRIdx];
-                (oldRoom.bills || []).forEach(ob => {
-                    if (!isMonthlyRentBill(ob.name)) {
-                        let uniqueKey = ob.name + "_" + ob.amount;
-                        if (!trackedUniqueKeys.has(uniqueKey)) {
-                            finalBills.push(ob);
-                            trackedUniqueKeys.add(uniqueKey);
-                        }
-                    }
-                });
-            }
-
+            // 3. 處理每月租金
             let leaseMonths = generateLeaseMonths(period);
             for (let i = 0; i < 12; i++) {
                 let mName = leaseMonths[i];
@@ -968,8 +950,12 @@
             }
 
             let roomObj = { number: num, tenant, rentPeriod: period, memo, rent, roomImg: processedImgUrl, roomTags, bills: finalBills, repairs: [] };
-            if (isEdit) { myData[selectedYear][gIdx].rooms[oldRIdx] = roomObj; } 
-            else { myData[selectedYear][gIdx].rooms.push(roomObj); }
+            
+            if (isEdit) { 
+                myData[selectedYear][gIdx].rooms[oldRIdx] = roomObj; 
+            } else { 
+                myData[selectedYear][gIdx].rooms.push(roomObj); 
+            }
             
             closeRoomModal();
             renderDashboard(true, false); 
