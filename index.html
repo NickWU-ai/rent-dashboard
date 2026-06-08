@@ -17,10 +17,7 @@
         .group-edit-btn { background: none; border: none; color: #2563eb; cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
         .group-edit-btn:hover { background-color: #eff6ff; }
         
-        /* RWD 彈性網格佈局 */
         .card-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        
-        /* 房源卡片與到期警告樣式 */
         .room-card { background-color: #f8fafc; border-radius: 12px; padding: 20px; position: relative; border: 1px solid #e2e8f0; transition: all 0.2s; box-sizing: border-box; }
         .room-card.expiry-warning { border: 2px solid #f97316 !important; background-color: #fff7ed !important; }
         .expiry-badge { background-color: #ffedd5; color: #ea580c; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 6px; display: inline-block; border: 1px solid #fed7aa; }
@@ -50,7 +47,7 @@
         .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
         .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
         .form-row-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .custom-item-box { background-color: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1; }
+        .custom-item-box { background-color: #f0fdf4; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1; }
         .custom-input-group { display: flex; gap: 8px; margin-bottom: 8px; }
         .custom-list { font-size: 12px; color: #475569; margin-top: 5px; padding-left: 20px; margin-bottom: 0; }
         .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
@@ -58,7 +55,6 @@
         .spinner { border: 4px solid #e2e8f0; border-top: 4px solid #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* 📱 手機版 RWD 覆蓋樣式 */
         @media (max-width: 768px) {
             body { padding: 15px; }
             .header-container { flex-direction: column; align-items: flex-start; gap: 15px; }
@@ -253,20 +249,18 @@
     <script>
         const CLOUD_API_URL = "https://script.google.com/macros/s/AKfycbw-uwKwzY6mIDtQOkC81pUj68huKnx2qZ3PKIbQtKfPycfyGpqhC4ln1Um-idpTBNrGbw/exec";
         
-        // 🔒 權限與密碼管理
+        // 🔒 權限管理 (預設直接開啟 FullView，不再隱藏任何房間)
         let isAdmin = false;
         let isFullView = true; 
         const ADMIN_PASSWORD = "2007"; 
         const VIEWER_PASSWORD = "5678"; 
 
-        // 核心資料字典與當前年度指引
         let myData = {}; 
         let selectedYear = "2026"; 
         let tempCustomBills = [];
-        let currentFilter = 'all'; // 預設顯示全部房源
+        let currentFilter = 'all'; 
         let chartInstance = null;
 
-        // 初始化與老資料相容性遷移邏輯
         try {
             let localData = localStorage.getItem("date_driven_landlord_data");
             if (localData && localData !== "[]" && localData !== "undefined") {
@@ -283,7 +277,6 @@
         if (!myData[selectedYear]) myData[selectedYear] = [];
         document.getElementById("yearSelect").value = selectedYear;
 
-        // 核心權限攔截器
         function checkPermission() {
             if (!isAdmin) {
                 alert("🔒 目前為「唯讀模式」，不允許執行此操作。\n若需使用，請先點擊網頁右上角的「管理員登入」。");
@@ -292,29 +285,27 @@
             return true;
         }
 
-        // 開關完整閱覽模式
         function toggleViewMode() {
             if (isFullView) {
                 isFullView = false;
-                alert("已切換回「訪客看房模式」，系統將自動鎖定僅顯示待租中房源。");
+                alert("已切換回「訪客看房模式」，將只顯示待租中房源。");
             } else {
-                let pass = prompt("🔑 請輸入閱覽者密碼以查看完整房源與財務資產：");
+                let pass = prompt("🔑 請輸入閱覽者密碼：");
                 if (pass === VIEWER_PASSWORD) {
                     isFullView = true;
                     alert("🔓 密碼正確！已解鎖完整房源瀏覽與報表檢視模式。");
                 } else if (pass !== null) {
-                    alert("❌ 密碼錯誤，保持訪客模式！");
+                    alert("❌ 密碼錯誤！");
                 }
             }
             renderDashboard(false);
         }
 
-        // 開關管理員登入模式
         function toggleAdminMode() {
             if (isAdmin) {
                 isAdmin = false;
-                isFullView = false;
-                alert("已登出管理員身分。系統切換回「訪客看房模式」。");
+                isFullView = true;
+                alert("已登出管理員身分。系統恢復「完整閱覽模式」。");
             } else {
                 let pass = prompt("🔑 請輸入管理員密碼：");
                 if (pass === ADMIN_PASSWORD) {
@@ -322,13 +313,12 @@
                     isFullView = true; 
                     alert("🔓 密碼正確！已開啟主控編輯權限。");
                 } else if (pass !== null) {
-                    alert("❌ 密碼錯誤，保持訪客模式！");
+                    alert("❌ 密碼錯誤！");
                 }
             }
             renderDashboard(false);
         }
 
-        // 智慧控管 UI 顯示整合權限機制
         function updateAuthUI() {
             const adminBtn = document.getElementById("adminBtn");
             const viewerBtn = document.getElementById("viewerBtn");
@@ -374,26 +364,20 @@
             }
         }
 
-        // 核心輔助工具：解析合約並吐出 12 個連續的 YYYY/MM 字串
         function generateLeaseMonths(periodStr) {
             let months = [];
             let defaultYear = parseInt(selectedYear) || new Date().getFullYear();
-            
-            // 預設防牢回傳：若沒租約，回傳當前選定年度的 1~12 月
             let fallback = [];
             for(let i=1; i<=12; i++) {
                 fallback.push(`${defaultYear}/${String(i).padStart(2, '0')}`);
             }
-
             if (!periodStr || !periodStr.includes("~")) return fallback;
             try {
                 let parts = periodStr.split("~");
-                let startPart = parts[0].trim(); // e.g. "2026/06"
-                
+                let startPart = parts[0].trim();
                 let startYM = startPart.split("/");
                 let sYear = parseInt(startYM[0]);
                 let sMonth = parseInt(startYM[1]);
-                
                 if(isNaN(sYear) || isNaN(sMonth)) return fallback;
                 for(let i = 0; i < 12; i++) {
                     let currentMonth = sMonth + i;
@@ -405,12 +389,9 @@
                     months.push(`${currentYear}/${String(currentMonth).padStart(2, '0')}`);
                 }
                 return months;
-            } catch(e) {
-                return fallback;
-            }
+            } catch(e) { return fallback; }
         }
 
-        // 動態刷新整合篩選選單項目
         function updateFilterDropdown(forceRefreshHTML = false) {
             const filterSelect = document.getElementById("filterSelect");
             const groupSection = document.getElementById("dropdownGroupSection");
@@ -424,17 +405,13 @@
                 });
                 groupSection.innerHTML = html;
             }
-            
             if (currentFilter.startsWith('group_')) {
                 let idx = parseInt(currentFilter.replace('group_', ''));
-                if (isNaN(idx) || idx >= activeData.length) {
-                    currentFilter = 'all';
-                }
+                if (isNaN(idx) || idx >= activeData.length) { currentFilter = 'all'; }
             }
             filterSelect.value = currentFilter;
         }
 
-        // 雲端同步下載還原邏輯
         if (myData[selectedYear].length === 0) {
             document.getElementById("connection-status").innerText = "⏳ 嘗試從雲端還原資料...";
             fetch(`${CLOUD_API_URL}?t=${Date.now()}`)
@@ -443,9 +420,7 @@
                     if (cloudJson) {
                         if (Array.isArray(cloudJson)) {
                             myData = {}; myData[selectedYear] = cloudJson;
-                        } else {
-                            myData = cloudJson;
-                        }
+                        } else { myData = cloudJson; }
                         if (!myData[selectedYear]) myData[selectedYear] = [];
                         localStorage.setItem("date_driven_landlord_data", JSON.stringify(myData));
                         renderDashboard(false, true);
@@ -456,7 +431,6 @@
                 }).catch(() => document.getElementById("connection-status").innerText = "⚠️ 雲端連線失敗 (單機模式)");
         }
 
-        // 年度切換
         function handleYearChange(year) {
             selectedYear = year;
             if (!myData[selectedYear] || myData[selectedYear].length === 0) {
@@ -464,12 +438,8 @@
                 if (myData[prevYear] && myData[prevYear].length > 0 && isAdmin) {
                     if (confirm(`📅 偵測到 ${selectedYear} 年尚未建立帳本。\n\n是否要從前一年 (${prevYear} 年) 自動複製結構？`)) {
                         myData[selectedYear] = cloneStructureForNewYear(myData[prevYear]);
-                    } else {
-                        myData[selectedYear] = [];
-                    }
-                } else {
-                    myData[selectedYear] = [];
-                }
+                    } else { myData[selectedYear] = []; }
+                } else { myData[selectedYear] = []; }
             }
             currentFilter = 'all';
             document.getElementById("connection-status").innerText = `🟢 目前顯示：${selectedYear} 年度帳本`;
@@ -495,7 +465,6 @@
         function forceDownloadFromCloud() {
             if (!checkPermission()) return;
             if(!confirm("⚠️ 確定要從雲端下載最新多年度資料覆蓋目前畫面嗎？")) return;
-            
             let currentLocalRaw = localStorage.getItem("date_driven_landlord_data");
             if (currentLocalRaw) localStorage.setItem("date_driven_landlord_data_safety_snapshot", currentLocalRaw);
 
@@ -507,17 +476,13 @@
                     if (cloudJson) {
                         if (Array.isArray(cloudJson)) {
                             myData = {}; myData[selectedYear] = cloudJson;
-                        } else {
-                            myData = cloudJson;
-                        }
+                        } else { myData = cloudJson; }
                         if (!myData[selectedYear]) myData[selectedYear] = [];
                         localStorage.setItem("date_driven_landlord_data", JSON.stringify(myData));
                         currentFilter = 'all';
                         renderDashboard(false, true);
                         alert("✅ 雲端同步完成！");
-                    } else { 
-                        alert("⚠️ 攔截警告：雲端回傳資料異常。"); 
-                    }
+                    } else { alert("⚠️ 攔截警告：雲端回傳資料異常。"); }
                 }).catch(() => alert("❌ 下載失敗。"))
                 .finally(() => document.getElementById("sync-overlay").style.display = "none");
         }
@@ -542,9 +507,7 @@
             localStorage.setItem("date_driven_landlord_data", currentJson);
             document.getElementById("formJsonField").value = currentJson;
             document.getElementById("cloud-form").submit();
-            setTimeout(() => {
-                if(overlay) overlay.style.display = "none";
-            }, 2500);
+            setTimeout(() => { if(overlay) overlay.style.display = "none"; }, 2500);
         }
 
         function copyLineMessage(tenant, roomNum, billName, amount) {
@@ -639,22 +602,16 @@
             }
         }
 
-        // 🌟 【核心修改：圖表統計邏輯】
-        // 只要入帳日期有字，直接抓取該筆帳單原本名稱內含的月份，並更新圖表。
         function drawChart() {
             let monthlyCashflow = Array(12).fill(0);
             let activeData = myData[selectedYear] || [];
             
             activeData.forEach(g => g.rooms.forEach(r => r.bills.forEach(b => {
-                // 修改處：只要有填寫任何文字，就視為已入帳
                 if (b.paidDate && b.paidDate.trim() !== "") {
-                    // 直接抓取帳單名稱（例如 "2026/06"）裡面的月份，不再強制解析日期字串
                     let monthParts = b.name.split("/");
                     if (monthParts.length >= 2) {
-                        let mIdx = parseInt(monthParts[1]) - 1; // 取得 0 到 11 月份索引
-                        if (mIdx >= 0 && mIdx < 12) {
-                            monthlyCashflow[mIdx] += b.amount;
-                        }
+                        let mIdx = parseInt(monthParts[1]) - 1; 
+                        if (mIdx >= 0 && mIdx < 12) { monthlyCashflow[mIdx] += b.amount; }
                     }
                 }
             })));
@@ -689,8 +646,6 @@
             });
         }
 
-        // 🌟 【核心修改：儀表板數據邏輯與渲染】
-        // 在統計「本月實收入帳」時，也同步改為只要有文字填寫就直接更新金額。
         function renderDashboard(triggerCloudSave = true, forceRefreshDropdown = false) {
             updateAuthUI();
             updateFilterDropdown(forceRefreshDropdown);
@@ -702,18 +657,13 @@
             let dashExpected = 0;
             let dashPaid = 0;
             let dashUnpaid = 0;
-
             let activeData = myData[selectedYear] || [];
             
             activeData.forEach(g => g.rooms.forEach(r => r.bills.forEach(b => {
                 if (b.name === curYM) {
                     dashExpected += b.amount;
-                    // 修改處：只要 paidDate 有值且非空字串，就視為已入帳並加入實收
-                    if (b.paidDate && b.paidDate.trim() !== "") {
-                        dashPaid += b.amount;
-                    } else {
-                        dashUnpaid += b.amount;
-                    }
+                    if (b.paidDate && b.paidDate.trim() !== "") { dashPaid += b.amount; } 
+                    else { dashUnpaid += b.amount; }
                 }
             })));
 
@@ -747,6 +697,7 @@
                     if (gIdx !== allowedIdx) return;
                 }
 
+                // 🌟修正處：健全完整的房間過濾與模式對齊機制，確保不會被隱藏
                 let filteredRooms = g.rooms.filter(r => {
                     if (currentFilter === 'vacant') return !r.tenant || r.tenant.trim() === "";
                     if (currentFilter === 'unpaid') {
@@ -777,7 +728,8 @@
                 let cardContainer = document.createElement("div");
                 cardContainer.className = "card-container";
 
-                filteredRooms.forEach((r, rVisualIdx) => {
+                filteredRooms.forEach((r) => {
+                    // 重新動態獲取該房間在原始陣列中的真實索引，防止編輯錯亂
                     let rIdx = g.rooms.findIndex(origRoom => origRoom.number === r.number);
                     let card = document.createElement("div");
                     card.className = "room-card";
@@ -809,7 +761,6 @@
                     if (r.tenant && r.tenant.trim() !== "") {
                         let billsHTML = "";
                         r.bills.forEach(b => {
-                            // 只要 paidDate 有內容就顯示綠色「已入帳」，否則紅字「未入帳」
                             let isPaid = b.paidDate && b.paidDate.trim() !== "";
                             let badgeClass = isPaid ? "status-paid" : "status-unpaid";
                             let badgeText = isPaid ? b.paidDate : "未入帳";
@@ -819,7 +770,7 @@
 
                             billsHTML += `
                                 <div class="bill-row">
-                                    <span style="font-weight:600; color:#475569;">${b.name.split('/')[1]}月账: $${b.amount.toLocaleString()}</span>
+                                    <span style="font-weight:600; color:#475569;">${b.name.split('/')[1]}月帳: $${b.amount.toLocaleString()}</span>
                                     <div>
                                         <span class="status-badge ${badgeClass}" ${actionClick}>${badgeText}</span>
                                         ${lineBtn}
@@ -828,7 +779,7 @@
                             `;
                         });
 
-                        let detailsHTML = r.details.map(d => `<div class="bill-row" style="background:#f1f5f9; color:#475569;"><span>${d.name}</span><span>+$${d.amount.toLocaleString()}</span></div>`).join("");
+                        let detailsHTML = r.details ? r.details.map(d => `<div class="bill-row" style="background:#f1f5f9; color:#475569;"><span>${d.name}</span><span>+$${d.amount.toLocaleString()}</span></div>`).join("") : "";
                         let extraBox = (r.customTotal > 0) ? `
                             <div class="extra-row" style="margin-bottom:8px;">
                                 <span>⚙️ 每月固定加項總計</span>
@@ -883,7 +834,6 @@
             });
         }
 
-        // 切換未入帳與入帳文字狀態
         function toggleBillStatus(gIdx, rIdx, billName) {
             if (!checkPermission()) return;
             let activeData = myData[selectedYear] || [];
@@ -892,7 +842,7 @@
             if (!bill) return;
 
             if (bill.paidDate && bill.paidDate.trim() !== "") {
-                bill.paidDate = ""; // 取消入帳
+                bill.paidDate = ""; 
             } else {
                 let today = new Date();
                 let defDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
@@ -913,7 +863,6 @@
             }
         }
 
-        // 彈窗模組開啟與關閉
         function openGroupModal() {
             if (!checkPermission()) return;
             document.getElementById("editGroupIndexFlag").value = "";
@@ -935,13 +884,8 @@
             if (!name) return alert("名稱不能空著！");
             let activeData = myData[selectedYear] || [];
             let flag = document.getElementById("editGroupIndexFlag").value;
-
-            if (flag === "") {
-                activeData.push({ groupName: name, rooms: [] });
-            } else {
-                let gIdx = parseInt(flag);
-                activeData[gIdx].groupName = name;
-            }
+            if (flag === "") { activeData.push({ groupName: name, rooms: [] }); } 
+            else { activeData[parseInt(flag)].groupName = name; }
             closeGroupModal();
             renderDashboard(true, true);
         }
@@ -1048,7 +992,12 @@
             let roomObj = { number: num, tenant, rentPeriod: period, memo, rent, deposit, manage, parking, pet, customTotal: customSum, details: tempCustomBills, bills, repairs };
 
             if (isEdit) {
-                myData[selectedYear][oldGIdx].rooms[oldRIdx] = roomObj;
+                if (oldGIdx != gIdx) {
+                    myData[selectedYear][oldGIdx].rooms.splice(oldRIdx, 1);
+                    myData[selectedYear][gIdx].rooms.push(roomObj);
+                } else {
+                    myData[selectedYear][gIdx].rooms[oldRIdx] = roomObj;
+                }
             } else {
                 myData[selectedYear][gIdx].rooms.push(roomObj);
             }
@@ -1057,7 +1006,6 @@
             closeRoomModal();
         }
 
-        // 初始首次加載渲染
         renderDashboard(false, true);
     </script>
 </body>
