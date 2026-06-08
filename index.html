@@ -313,6 +313,11 @@
             return clean;
         }
 
+        // 判斷某個項目名稱是否為 12 個月的月租項目格式 (例如 2026/05)
+        function isMonthlyRentBill(billName) {
+            return /^\d{4}\/\d{2}$/.test(normalizeYM(billName));
+        }
+
         try {
             let localData = localStorage.getItem("date_driven_landlord_data");
             if (localData && localData !== "[]" && localData !== "undefined") {
@@ -756,10 +761,12 @@
                     room.bills.forEach((bill, bIdx) => {
                         let isPaid = bill.paidDate && bill.paidDate.trim() !== "";
                         let badge = `<span class="status-badge ${isPaid ? 'status-paid' : 'status-unpaid'}" onclick="changePaidDate(${gIdx},${originalRoomIdx},${bIdx})">${isPaid ? bill.paidDate : '未收'}</span>`;
-                        if(!isPaid && !bill.name.includes("押金")) {
+                        if(!isPaid && !isMonthlyRentBill(bill.name)) {
                             badge = `<div style="display:flex; gap:2px; width:100%;">${badge}<button class="action-btn" style="color:#06b6d4; font-size:11px;" onclick="event.stopPropagation(); copyLineMessage('${room.tenant}', '${room.number}', '${bill.name}', ${bill.amount})">💬</button></div>`;
                         }
-                        if (bill.name.includes("押金") || bill.name.includes("電費") || bill.name.includes("水費") || bill.name.includes("管理") || bill.name.includes("清潔") || bill.name.includes("寵物") || bill.name.includes("(")) {
+                        
+                        // 非 YYYY/MM 格式的全部歸類為自訂彈性區
+                        if (!isMonthlyRentBill(bill.name)) {
                             depositHTML += `<div class="extra-row"><span>${bill.name}: <strong>$${bill.amount}</strong></span><div style="width:70px;">${badge}</div></div>`;
                         } else {
                             let borderStyle = (normalizeYM(bill.name) === curYM) ? 'border: 2px solid #2563eb; background: #eff6ff;' : '';
@@ -869,8 +876,8 @@
             document.getElementById("inputRoomTags").value = room.roomTags || "";
             document.getElementById("inputMemo").value = room.memo || "";
             
-            // 💡 關鍵修復點 1：開啟舊房源時，先撈出它原本已經存檔成功的自訂雜費與水電費項目
-            tempCustomBills = (room.bills || []).filter(b => b.name.includes("房屋押金") || b.name.includes("(") || b.name.includes("管理") || b.name.includes("清潔") || b.name.includes("寵物") || b.name.includes("電費") || b.name.includes("水費"));
+            // 💡 關鍵修復：只要名字「不是」月租格式（YYYY/MM），就100%是使用者自訂的水電雜費，全部抓出來
+            tempCustomBills = (room.bills || []).filter(b => !isMonthlyRentBill(b.name));
             document.getElementById("customListVisual").innerHTML = tempCustomBills.map(item => `<li>${item.name}: $${item.amount}</li>`).join("");
         }
 
@@ -923,43 +930,41 @@
             let isEdit = oldGIdx !== "" && oldRIdx !== "";
 
             let finalBills = [];
+            let trackedNames = new Set();
             
-            // 1. 處理房屋押金
+            // 1. 處理押金（如果大於0）
             if (deposit > 0) {
                 let oldDepositPaid = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => b.name === "房屋押金")?.paidDate || "") : "";
                 finalBills.push({ name: "房屋押金", amount: deposit, paidDate: oldDepositPaid });
+                trackedNames.add("房屋押金");
             }
 
-            // 💡 關鍵修復點 2：整合「舊檔案內原本有的雜費」與「剛剛點計算機新增的雜費」
-            let trackedNames = new Set(["房屋押金"]);
-            
-            // 先塞入剛剛計算機點出來的新項目/或舊房源帶過來的暫存項目
+            // 2. 先匯入當前計算機新增的，或是舊有的「自訂費用」
             tempCustomBills.forEach(cb => {
-                if(!trackedNames.has(cb.name)) {
+                if(!trackedNames.has(cb.name) && !isMonthlyRentBill(cb.name)) {
                     let oldPaid = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => b.name === cb.name)?.paidDate || "") : "";
                     finalBills.push({ name: cb.name, amount: cb.amount, paidDate: cb.paidDate || oldPaid });
                     trackedNames.add(cb.name);
                 }
             });
 
-            // 預防萬一：如果編輯房源時使用者沒動計算機，把舊帳單裡的雜費原封不動搬過來
+            // 3. 備份機制：如果使用者編輯時沒動計算機，把舊帳單中「所有不是月租格式」的雜費項目原封不動搬過來
             if (isEdit) {
                 let oldRoom = myData[selectedYear][oldGIdx].rooms[oldRIdx];
                 (oldRoom.bills || []).forEach(ob => {
-                    if (ob.name.includes("(") || ob.name.includes("管理") || ob.name.includes("清潔") || ob.name.includes("寵物") || ob.name.includes("電費") || ob.name.includes("水費")) {
-                        if (!trackedNames.has(ob.name)) {
-                            finalBills.push(ob);
-                            trackedNames.add(ob.name);
-                        }
+                    if (!isMonthlyRentBill(ob.name) && !trackedNames.has(ob.name)) {
+                        finalBills.push(ob);
+                        trackedNames.add(ob.name);
                     }
                 });
             }
 
-            // 3. 自動生成 12 個月的基本房租並融合
+            // 4. 自動生成 12 個月的基本房租並融合
             let leaseMonths = generateLeaseMonths(period);
             for (let i = 0; i < 12; i++) {
-                let oldDate = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => normalizeYM(b.name) === normalizeYM(leaseMonths[i]))?.paidDate || "") : "";
-                finalBills.push({ name: leaseMonths[i], amount: rent, paidDate: oldDate });
+                let mName = leaseMonths[i];
+                let oldDate = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => normalizeYM(b.name) === normalizeYM(mName))?.paidDate || "") : "";
+                finalBills.push({ name: mName, amount: rent, paidDate: oldDate });
             }
 
             let roomObj = { number: num, tenant, rentPeriod: period, memo, rent, roomImg: processedImgUrl, roomTags, bills: finalBills, repairs: [] };
