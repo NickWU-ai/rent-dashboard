@@ -5,89 +5,85 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body { background-color: #f8fafc; font-family: sans-serif; padding: 20px; color: #1e293b; margin: 0; }
+        body { background-color: #f8fafc; font-family: sans-serif; padding: 20px; color: #1e293b; margin: 0; box-sizing: border-box; }
+        *, *:before, *:after { box-sizing: inherit; }
+        
         .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
         h1 { color: #0f172a; margin: 0; font-size: 24px; }
         .subtitle { color: #64748b; font-size: 13px; margin-top: 5px; }
         .btn-wrapper { display: flex; flex-wrap: wrap; gap: 8px; }
-        .btn { padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer; border: none; transition: background 0.2s; white-space: nowrap; }
+        .btn { padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer; border: none; transition: background 0.2s; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; }
         .btn-primary { background-color: #2563eb; color: white; }
         
-        .group-section { background-color: #ffffff; border-radius: 16px; padding: 20px; margin-bottom: 25px; border: 1px solid #e2e8f0; }
+        .group-section { background-color: #ffffff; border-radius: 16px; padding: 20px; margin-bottom: 25px; border: 1px solid #e2e8f0; width: 100%; display: block !important; }
         .group-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
         .group-title { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin: 0; color: #0f172a; }
         .group-edit-btn { background: none; border: none; color: #2563eb; cursor: pointer; font-size: 13px; padding: 2px 6px; border-radius: 4px; }
         .group-edit-btn:hover { background-color: #eff6ff; }
         
-        /* 網格佈局 */
-        .card-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        /* 網格佈局防爆開 */
+        .card-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; width: 100%; }
         
         /* 房源卡片 */
-        .room-card { background-color: #f8fafc; border-radius: 12px; padding: 18px; position: relative; border: 1px solid #e2e8f0; transition: all 0.2s; box-sizing: border-box; }
+        .room-card { background-color: #f8fafc; border-radius: 12px; padding: 18px; position: relative; border: 1px solid #e2e8f0; transition: all 0.2s; overflow: hidden; width: 100%; }
         .room-card.expiry-warning { border: 2px solid #f97316 !important; background-color: #fff7ed !important; }
-        .expiry-badge { background-color: #ffedd5; color: #ea580c; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 6px; display: inline-block; border: 1px solid #fed7aa; }
         
-        .card-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; }
+        .card-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; z-index: 10; }
         .action-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px; }
         .delete-btn { color: #ef4444; }
         .edit-btn { color: #2563eb; }
-        .room-number { font-size: 17px; font-weight: 700; margin-bottom: 12px; color: #0f172a; }
-        .info-text { font-size: 13px; color: #64748b; margin-bottom: 6px; }
+        .room-number { font-size: 17px; font-weight: 700; margin-bottom: 12px; color: #0f172a; padding-right: 60px; }
+        .info-text { font-size: 13px; color: #64748b; margin-bottom: 6px; word-break: break-all; }
         .memo-badge { background-color: #fffbeb; color: #b45309; border: 1px dashed #fde68a; padding: 6px 10px; border-radius: 6px; font-size: 12px; margin-top: 8px; margin-bottom: 4px; line-height: 1.4; word-break: break-all; }
         
-        .ledger-box { background-color: #ffffff; border-radius: 8px; padding: 12px; margin-top: 15px; border: 1px solid #edf2f7; }
+        /* 💡 徹底解決現金流表格超出範圍的排版 */
+        .ledger-box { background-color: #ffffff; border-radius: 8px; padding: 12px; margin-top: 15px; border: 1px solid #edf2f7; width: 100%; }
         .ledger-title { font-size: 12px; font-weight: bold; color: #64748b; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
-        .bill-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-        .bill-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; background: #f8fafc; padding: 6px; border-radius: 6px; border: 1px solid #e2e8f0; }
-        .extra-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; background: #eff6ff; padding: 6px 8px; border-radius: 6px; border: 1px solid #bfdbfe; color: #1e40af; }
-        .memo-text { font-size: 11px; color: #64748b; padding-left: 15px; line-height: 1.4; margin: 0 0 10px 0; }
+        .bill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; width: 100%; }
+        .bill-row { display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; font-size: 11px; background: #f8fafc; padding: 6px; border-radius: 6px; border: 1px solid #e2e8f0; gap: 4px; text-align: center; }
+        .bill-row span { font-weight: 500; color: #475569; }
+        .extra-row { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; font-size: 11px; background: #eff6ff; padding: 6px 8px; border-radius: 6px; border: 1px solid #bfdbfe; color: #1e40af; }
         
-        .status-badge { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; user-select: none; text-align: center; min-width: 40px; display: inline-block; }
+        .status-badge { padding: 4px; border-radius: 4px; font-size: 11px; font-weight: 600; user-select: none; text-align: center; display: block; cursor: pointer; width: 100%; }
         .status-paid { background-color: #dcfce7; color: #15803d; }
         .status-unpaid { background-color: #fee2e2; color: #b91c1c; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.6); display: flex; justify-content: center; align-items: center; display: none; z-index: 1000; padding: 10px; box-sizing: border-box; }
-        .modal-box { background-color: white; padding: 20px; border-radius: 16px; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
-        .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 15px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.6); display: flex; justify-content: center; align-items: center; display: none; z-index: 1000; padding: 10px; }
+        .modal-box { background-color: white; padding: 20px; border-radius: 16px; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; }
-        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
         .form-row-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .custom-item-box { background-color: #f1f5f9; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1; }
-        .custom-input-group { display: flex; gap: 6px; margin-bottom: 6px; }
-        .custom-list { font-size: 11px; color: #475569; margin-top: 5px; padding-left: 15px; }
-        .modal-buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
         
         #sync-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.9); display: none; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; color: #2563eb; z-index: 9999; flex-direction: column; gap: 15px; }
         .spinner { border: 4px solid #e2e8f0; border-top: 4px solid #2563eb; border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* 📱 最佳化手機版 RWD 覆蓋樣式 */
+        /* 📱 精準修正手機版 RWD 覆蓋 */
         @media (max-width: 768px) {
-            body { padding: 12px; }
-            h1 { font-size: 20px; text-align: center; width: 100%; }
-            .subtitle { text-align: center; width: 100%; }
-            .header-container { justify-content: center; margin-bottom: 15px; }
+            body { padding: 10px; }
+            h1 { font-size: 18px; text-align: center; width: 100%; }
+            .header-container { justify-content: center; margin-bottom: 15px; gap: 10px; }
             .btn-wrapper { justify-content: center; width: 100%; gap: 6px; }
-            .btn { padding: 8px 10px; font-size: 12px; flex: 1 1 calc(50% - 6px); text-align: center; justify-content: center; }
+            .btn { padding: 8px 6px; font-size: 11px; flex: 1 1 calc(50% - 4px); text-align: center; }
             
-            /* 手機版隱藏趨勢圖，讓財務卡片滿版 */
+            /* 頂部財務卡片手機版垂直排列 */
             .top-grid { grid-template-columns: 1fr !important; gap: 10px !important; margin-bottom: 15px !important; }
-            .top-grid > div:last-child { display: none !important; } /* 隱藏圖表 */
+            .top-grid > div:last-child { display: none !important; } /* 隱藏大型圖表防擠壓 */
             #dashboard-zone { grid-template-columns: 1fr !important; gap: 8px !important; }
-            #dashboard-zone > div { padding: 12px !important; }
             
-            /* 工具列排版優化 */
-            .toolbar-container { flex-direction: column; align-items: stretch !important; gap: 10px !important; padding: 12px !important; }
-            .controls-wrapper { flex-direction: column; align-items: stretch !important; gap: 8px !important; width: 100%; }
-            .control-item { width: 100%; justify-content: space-between; display: flex; align-items: center; }
-            .control-item select { width: 60% !important; max-width: 200px; padding: 6px !important; font-size: 13px; }
-            #exportBtn { width: 100%; text-align: center; margin-top: 4px; padding: 10px; }
+            /* 篩選工具列 */
+            .toolbar-container { flex-direction: column !important; align-items: stretch !important; gap: 10px !important; padding: 12px !important; }
+            .controls-wrapper { flex-direction: column !important; align-items: stretch !important; gap: 8px !important; width: 100%; }
+            .control-item { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+            .control-item select { width: 65% !important; max-width: none !important; font-size: 13px; padding: 6px !important; }
+            #exportBtn { width: 100%; text-align: center; padding: 10px; }
             
-            /* 房源區塊與卡片調整 */
-            .group-section { padding: 14px; margin-bottom: 15px; }
-            .card-container { grid-template-columns: 1fr !important; gap: 15px; }
-            .bill-grid { grid-template-columns: 1fr 1fr !important; } /* 保持兩欄方便對比 */
+            /* 社區與房源卡片：確保所有社區都能完整垂直延伸顯示 */
+            #group-zone { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+            .group-section { padding: 12px; margin-bottom: 0px; width: 100%; }
+            .card-container { grid-template-columns: 1fr !important; gap: 12px; width: 100%; }
+            .bill-grid { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)) !important; } /* 手機版自動調整月份格子窄度 */
             .form-row-grid { grid-template-columns: 1fr; gap: 0; }
         }
     </style>
@@ -120,7 +116,7 @@
     </div>
     
     <div id="topFinancialGrid" class="top-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin-bottom: 25px;">
-        <div id="dashboard-zone" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;"></div >
+        <div id="dashboard-zone" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;"></div>
         <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; height: 230px; box-sizing: border-box;">
             <div style="font-size: 13px; color: #64748b; font-weight: 600; margin-bottom: 10px;">📊 年度歷史實收租金趨勢</div>
             <div style="height: 160px; position: relative;">
@@ -158,7 +154,7 @@
     
     <div id="group-zone"></div>
 
-    <!-- 各種彈出視窗（Modal）保持原有邏輯，但加入了更好的手機響應寬度控制 -->
+    <!-- 各種彈出視窗（Modal） -->
     <div class="modal-overlay" id="groupModal">
         <div class="modal-box">
             <div class="modal-title" id="groupModalTitle">📍 新增社區群組</div>
@@ -167,7 +163,7 @@
                 <label>社區/街道名稱</label>
                 <input type="text" id="inputGroupName" placeholder="例如：福中街">
             </div>
-            <div class="modal-buttons">
+            <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
                 <button class="btn" style="background-color:#cbd5e1;" onclick="closeGroupModal()">取消</button>
                 <button class="btn btn-primary" id="submitGroupBtn" onclick="submitGroup()">確定建立</button>
             </div>
@@ -206,12 +202,12 @@
 
             <div class="form-group">
                 <label>⚡ 獨立水電費計算機</label>
-                <div class="custom-item-box" style="background-color: #f0fdf4; border-color: #bbf7d0; margin-bottom: 10px;">
+                <div style="background-color: #f0fdf4; border: 1px dashed #bbf7d0; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
                     <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 0.8fr; gap: 4px; margin-bottom: 8px;">
-                        <input type="text" id="calcName" value="電費" style="padding:4px;">
-                        <input type="number" id="calcPrev" placeholder="上次" style="padding:4px;">
-                        <input type="number" id="calcCurr" placeholder="本次" style="padding:4px;">
-                        <input type="number" id="calcRate" value="5" style="padding:4px;">
+                        <input type="text" id="calcName" value="電費" style="padding:4px; font-size:12px;">
+                        <input type="number" id="calcPrev" placeholder="上次" style="padding:4px; font-size:12px;">
+                        <input type="number" id="calcCurr" placeholder="本次" style="padding:4px; font-size:12px;">
+                        <input type="number" id="calcRate" value="5" style="padding:4px; font-size:12px;">
                     </div>
                     <button class="btn" style="background-color: #16a34a; color: white; width: 100%; padding: 6px; font-size: 12px;" onclick="calculateUtility()">🧮 計算並匯入</button>
                 </div>
@@ -228,32 +224,7 @@
                     <input type="number" id="inputDeposit" value="24000">
                 </div>
             </div>
-            <div class="form-row-grid">
-                <div class="form-group">
-                    <label>🛡️ 每月管理費</label>
-                    <input type="number" id="inputManage" value="0">
-                </div>
-                <div class="form-group">
-                    <label>🚗 每月車位費</label>
-                    <input type="number" id="inputParking" value="0">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>🐾 每月寵物清潔費</label>
-                <input type="number" id="inputPet" value="0">
-            </div>
-            <div class="form-group">
-                <label>✍️ 其他臨時特殊月費</label>
-                <div class="custom-item-box" id="customItemBoxSection">
-                    <div class="custom-input-group">
-                        <input type="text" id="customName" placeholder="項目" style="flex: 2;">
-                        <input type="number" id="customAmount" placeholder="金額" style="flex: 1;">
-                        <button class="btn btn-primary" style="padding: 0 10px; background-color: #475569;" onclick="addCustomBillItem()">＋</button>
-                    </div>
-                    <ul class="custom-list" id="customListVisual"></ul>
-                </div>
-            </div>
-            <div class="modal-buttons">
+            <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
                 <button class="btn" style="background-color:#cbd5e1;" onclick="closeRoomModal()">取消</button>
                 <button class="btn btn-primary" style="background-color: #10b981;" id="submitRoomBtn" onclick="submitRoom()">確認</button>
             </div>
@@ -274,7 +245,19 @@
         let currentFilter = 'all'; 
         let chartInstance = null;
 
-        // 初始化讀取本地快取
+        // 萬用月份格式統一函數，解決收入變成 0 的核心關鍵
+        function normalizeYM(str) {
+            if(!str) return "";
+            let clean = str.replace(/\s+/g, "").replace(/-/g, "/");
+            let parts = clean.split("/");
+            if(parts.length >= 2) {
+                let y = parts[0];
+                let m = String(parseInt(parts[1], 10)).padStart(2, '0');
+                return `${y}/${m}`;
+            }
+            return clean;
+        }
+
         try {
             let localData = localStorage.getItem("date_driven_landlord_data");
             if (localData && localData !== "[]" && localData !== "undefined") {
@@ -343,10 +326,10 @@
             if (isAdmin) {
                 adminBtn.innerHTML = "🔓 登出管理";
                 adminBtn.style.backgroundColor = "#dc2626";
-                if(btnAddGroup) btnAddGroup.style.display = "inline-block";
-                if(btnAddRoom) btnAddRoom.style.display = "inline-block";
-                if(btnSync) btnSync.style.display = "inline-block";
-                if(btnBackup) btnBackup.style.display = "inline-block";
+                if(btnAddGroup) btnAddGroup.style.display = "inline-flex";
+                if(btnAddRoom) btnAddRoom.style.display = "inline-flex";
+                if(btnSync) btnSync.style.display = "inline-flex";
+                if(btnBackup) btnBackup.style.display = "inline-flex";
                 viewerBtn.style.display = "none";
             } else {
                 adminBtn.innerHTML = "🔐 管理登入";
@@ -355,13 +338,13 @@
                 if(btnAddRoom) btnAddRoom.style.display = "none";
                 if(btnSync) btnSync.style.display = "none";
                 if(btnBackup) btnBackup.style.display = "none";
-                viewerBtn.style.display = "inline-block";
+                viewerBtn.style.display = "inline-flex";
                 viewerBtn.innerHTML = isFullView ? "👁️ 唯讀中(點此切回訪客)" : "👁️ 完整閱覽登入";
             }
 
             if (isAdmin || isFullView) {
                 if(topFinancialGrid) topFinancialGrid.style.display = "grid";
-                if(exportBtn) exportBtn.style.display = "inline-block";
+                if(exportBtn) exportBtn.style.display = "inline-flex";
             } else {
                 if(topFinancialGrid) topFinancialGrid.style.display = "none";
                 if(exportBtn) exportBtn.style.display = "none";
@@ -404,30 +387,27 @@
                 });
                 groupSection.innerHTML = html;
             }
-            if (currentFilter.startsWith('group_')) {
-                let idx = parseInt(currentFilter.replace('group_', ''));
-                if (isNaN(idx) || idx >= activeData.length) currentFilter = 'all';
-            }
             filterSelect.value = currentFilter;
         }
 
-        // 載入時從雲端自動拉取
-        if (myData[selectedYear].length === 0) {
-            document.getElementById("connection-status").innerText = "⏳ 雲端同步資料中...";
-            fetch(`${CLOUD_API_URL}?t=${Date.now()}`)
-                .then(res => res.json())
-                .then(cloudJson => {
-                    if (cloudJson) {
-                        myData = Array.isArray(cloudJson) ? { [selectedYear]: cloudJson } : cloudJson;
-                        if (!myData[selectedYear]) myData[selectedYear] = [];
-                        localStorage.setItem("date_driven_landlord_data", JSON.stringify(myData));
-                        renderDashboard(false, true);
-                        document.getElementById("connection-status").innerText = `🟢 雲端同步成功 (${selectedYear})`;
-                    } else {
-                        document.getElementById("connection-status").innerText = "🟢 資料庫就緒";
-                    }
-                }).catch(() => document.getElementById("connection-status").innerText = "⚠️ 離線單機模式");
-        }
+        // 讀取初始化
+        document.getElementById("connection-status").innerText = "⏳ 雲端同步資料中...";
+        fetch(`${CLOUD_API_URL}?t=${Date.now()}`)
+            .then(res => res.json())
+            .then(cloudJson => {
+                if (cloudJson) {
+                    myData = Array.isArray(cloudJson) ? { [selectedYear]: cloudJson } : cloudJson;
+                    if (!myData[selectedYear]) myData[selectedYear] = [];
+                    localStorage.setItem("date_driven_landlord_data", JSON.stringify(myData));
+                    renderDashboard(false, true);
+                    document.getElementById("connection-status").innerText = `🟢 雲端同步成功 (${selectedYear})`;
+                } else {
+                    document.getElementById("connection-status").innerText = "🟢 資料庫就緒";
+                }
+            }).catch(() => {
+                document.getElementById("connection-status").innerText = "⚠️ 離線單機模式";
+                renderDashboard(false, true);
+            });
 
         function handleYearChange(year) {
             selectedYear = year;
@@ -470,7 +450,7 @@
             localStorage.setItem("date_driven_landlord_data", currentJson);
             document.getElementById("formJsonField").value = currentJson;
             document.getElementById("cloud-form").submit();
-            setTimeout(() => { if(overlay) overlay.style.display = "none"; }, 2000);
+            setTimeout(() => { if(overlay) overlay.style.display = "none"; }, 1500);
         }
 
         function copyLineMessage(tenant, roomNum, billName, amount) {
@@ -520,34 +500,11 @@
             a.download = `收租月報.csv`; a.click();
         }
 
-        function addRepairLog(gIdx, rIdx) {
-            if (!checkPermission()) return;
-            let input = prompt("🛠️ 新增修繕項目與金額 (範例：更換燈泡,350)");
-            if (!input) return;
-            let parts = input.split(",");
-            if (!parts[0]) return alert("項目名稱不可為空");
-            let activeData = myData[selectedYear] || [];
-            if (!activeData[gIdx].rooms[rIdx].repairs) activeData[gIdx].rooms[rIdx].repairs = [];
-            let today = new Date();
-            activeData[gIdx].rooms[rIdx].repairs.push({ date: `${today.getFullYear()}/${today.getMonth()+1}/${today.getDate()}`, name: parts[0].trim(), cost: Number(parts[1])||0 });
-            renderDashboard();
-        }
-
-        function deleteRepairLog(gIdx, rIdx, repIdx) {
-            if (!checkPermission()) return;
-            if (confirm("確定刪除此筆紀錄？")) {
-                myData[selectedYear][gIdx].rooms[rIdx].repairs.splice(repIdx, 1);
-                renderDashboard();
-            }
-        }
-
         function drawChart() {
+            if (window.innerWidth <= 768) return;
             let monthlyCashflow = Array(12).fill(0);
             let activeData = myData[selectedYear] || [];
             
-            // 檢查是否為手機版，如果是手機版，我們跳過 Chart.js 的渲染以優化效能與版面
-            if (window.innerWidth <= 768) return;
-
             activeData.forEach(g => g.rooms.forEach(r => r.bills.forEach(b => {
                 if (b.paidDate && b.paidDate.trim() !== "") {
                     let cleaned = b.paidDate.trim();
@@ -582,19 +539,20 @@
             let groupZone = document.getElementById("group-zone");
             let dashZone = document.getElementById("dashboard-zone");
             let today = new Date();
-            let curYM = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}`;
+            // 格式統一化
+            let curYM = normalizeYM(`${today.getFullYear()}/${today.getMonth() + 1}`);
             let activeData = myData[selectedYear] || [];
 
             if (!activeData.length) {
                 dashZone.innerHTML = ""; 
-                groupZone.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b; background:white; border-radius:16px; border:1px dashed #cbd5e1; margin-top:10px;"><p>👋 歡迎來到 ${selectedYear} 年度帳本！</p></div>`;
+                groupZone.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b; background:white; border-radius:16px; border:1px dashed #cbd5e1; margin-top:10px;"><p>👋 歡迎使用！請先點擊右上角新增社區與房源。</p></div>`;
                 if(triggerSave) saveToCloud();
                 return;
             }
 
             let dashExpected = 0, dashPaid = 0, dashUnpaid = 0;
             activeData.forEach(g => g.rooms.forEach(r => r.bills.forEach(b => {
-                if (b.name === curYM) {
+                if (normalizeYM(b.name) === curYM) {
                     dashExpected += b.amount;
                     if (b.paidDate && b.paidDate.trim() !== "") dashPaid += b.amount;
                     else dashUnpaid += b.amount;
@@ -608,7 +566,7 @@
 
             let mainHTML = "";
             activeData.forEach((group, gIdx) => {
-                // 重大修正點：手機版或篩選器選擇單一社區時的邏輯比對優化
+                // 修正連動條件：確保手機與網頁對 group_x 的解讀 100% 一致
                 if (currentFilter.startsWith('group_')) {
                     let targetGIdx = currentFilter.replace('group_', '');
                     if (String(gIdx) !== targetGIdx) return;
@@ -620,30 +578,29 @@
                     if (!isAdmin && !isFullView) return isVacant;
                     if (currentFilter === 'vacant') return isVacant;
                     if (currentFilter === 'unpaid') {
-                        let mBill = room.bills.find(b => b.name === curYM);
+                        let mBill = room.bills.find(b => normalizeYM(b.name) === curYM);
                         return mBill ? (!mBill.paidDate || mBill.paidDate.trim() === "") : false;
                     }
                     return true; 
                 });
 
-                if (filteredRooms.length === 0 && currentFilter !== 'all') return;
+                if (filteredRooms.length === 0 && currentFilter !== 'all' && !currentFilter.startsWith('group_')) return;
 
                 let cardsHTML = filteredRooms.map((room) => {
                     let originalRoomIdx = group.rooms.indexOf(room);
                     let depositHTML = "", monthsHTML = "";
-                    let leaseMonths = generateLeaseMonths(room.rentPeriod);
                     
                     room.bills.forEach((bill, bIdx) => {
                         let isPaid = bill.paidDate && bill.paidDate.trim() !== "";
                         let badge = `<span class="status-badge ${isPaid ? 'status-paid' : 'status-unpaid'}" onclick="changePaidDate(${gIdx},${originalRoomIdx},${bIdx})">${isPaid ? bill.paidDate : '未收'}</span>`;
                         if(!isPaid && !bill.name.includes("押金")) {
-                            badge += ` <button class="action-btn" style="color:#06b6d4;" onclick="event.stopPropagation(); copyLineMessage('${room.tenant}', '${room.number}', '${bill.name}', ${bill.amount})">💬</button>`;
+                            badge = `<div style="display:flex; gap:2px; width:100%;">${badge}<button class="action-btn" style="color:#06b6d4; font-size:11px;" onclick="event.stopPropagation(); copyLineMessage('${room.tenant}', '${room.number}', '${bill.name}', ${bill.amount})">💬</button></div>`;
                         }
                         if (bill.name.includes("押金")) {
-                            depositHTML = `<div class="extra-row"><span>${bill.name}: <strong>$${bill.amount}</strong></span>${badge}</div>`;
+                            depositHTML = `<div class="extra-row"><span>${bill.name}: <strong>$${bill.amount}</strong></span><div style="width:70px;">${badge}</div></div>`;
                         } else {
-                            let borderStyle = (bill.name === curYM) ? 'border: 1px solid #2563eb; background: #eff6ff;' : '';
-                            monthsHTML += `<div class="bill-row" style="${borderStyle}"><span>${bill.name}:<b>$${bill.amount}</b></span>${badge}</div>`;
+                            let borderStyle = (normalizeYM(bill.name) === curYM) ? 'border: 1px solid #2563eb; background: #eff6ff;' : '';
+                            monthsHTML += `<div class="bill-row" style="${borderStyle}"><span>${bill.name}</span><strong>$${bill.amount}</strong>${badge}</div>`;
                         }
                     });
 
@@ -688,13 +645,6 @@
             }
             bill.paidDate = newDate;
             renderDashboard(true, false); 
-        }
-
-        function addCustomBillItem() {
-            let name = document.getElementById("customName").value, amt = document.getElementById("customAmount").value;
-            if (!name || !amt) return;
-            tempCustomBills.push({ name, amount: Number(amt) });
-            document.getElementById("customListVisual").innerHTML = tempCustomBills.map(item => `<li>${item.name}</li>`).join("");
         }
 
         function openGroupModal() { 
@@ -751,7 +701,7 @@
             let bills = [];
             let leaseMonths = generateLeaseMonths(period);
             for (let i = 0; i < 12; i++) {
-                let oldDate = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => b.name === leaseMonths[i])?.paidDate || "") : "";
+                let oldDate = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => normalizeYM(b.name) === normalizeYM(leaseMonths[i]))?.paidDate || "") : "";
                 bills.push({ name: leaseMonths[i], amount: rent, paidDate: oldDate });
             }
 
@@ -766,8 +716,6 @@
             if (!checkPermission()) return;
             if(confirm("確定刪除房源？")) { myData[selectedYear][gIdx].rooms.splice(rIdx, 1); renderDashboard(true, true); }
         }
-
-        renderDashboard(false, true);
     </script>
 </body>
 </html>
