@@ -219,7 +219,7 @@
             </div>
 
             <div class="form-group" id="utilityCalculatorWrapper">
-                <label>⚡ 獨立水電費計算機</label>
+                <label>⚡ 獨立水電費/管理費等計算機</label>
                 <div style="background-color: #f0fdf4; border: 1px dashed #bbf7d0; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
                     <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 0.8fr; gap: 4px; margin-bottom: 8px;">
                         <input type="text" id="calcName" value="電費" style="padding:4px; font-size:12px;">
@@ -284,12 +284,11 @@
 
         let myData = {}; 
         let selectedYear = "2026"; 
-        let tempCustomBills = [];
+        let tempCustomBills = []; // 儲存計算機產生的各式雜費
         let currentFilter = 'all'; 
         let chartInstance = null;
         let isPublicEditing = false;
 
-        // 🧠 核心轉換機制：自動重組網址字串
         function convertGoogleDriveLink(url) {
             if (!url) return "";
             let cleaned = url.trim();
@@ -590,15 +589,22 @@
             return { warning: false, text: "" };
         }
 
+        // 🧮 支援任何名稱（電費、水費、管理費、清潔費、寵物費等）的加總計算機
         function calculateUtility() {
-            let name = document.getElementById("calcName").value || "電費";
+            let name = document.getElementById("calcName").value || "雜費";
             let prev = document.getElementById("calcPrev").value, curr = document.getElementById("calcCurr").value;
-            let rate = Number(document.getElementById("calcRate").value) || 5;
-            if (prev === "" || curr === "") return alert("請輸入完整度數！");
-            let degrees = Number(curr) - Number(prev);
-            if (degrees < 0) return alert("本次度數小於上次度數！");
-            let total = degrees * rate;
-            tempCustomBills.push({ name: `${name}(${degrees}度)`, amount: total });
+            let rate = Number(document.getElementById("calcRate").value) || 1;
+            
+            // 如果只有填寫單價/固定金額，而沒有填寫度數，自動視為固定費用（如管理費、寵物費、清潔費）
+            if (prev === "" && curr === "") {
+                tempCustomBills.push({ name: name, amount: rate });
+            } else {
+                let degrees = Number(curr) - Number(prev);
+                if (degrees < 0) return alert("本次度數小於上次度數！");
+                let total = degrees * rate;
+                tempCustomBills.push({ name: `${name}(${degrees}度)`, amount: total });
+            }
+            
             document.getElementById("customListVisual").innerHTML = tempCustomBills.map(item => `<li>${item.name}: +$${item.amount}</li>`).join("");
         }
 
@@ -725,7 +731,7 @@
                     let tName = (room.tenant || "").trim();
                     let isVacant = tName === "" || tName.includes("待租");
 
-                    // 🏠 訪客模式招租卡片（徹底切斷架構，嚴禁出現備註與內部資訊）
+                    // 🏠 訪客模式招租卡片（嚴禁出現備註與內部財務細節）
                     if (isPublicViewMode) {
                         let imgUrl = room.roomImg || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80";
                         let tagHtml = (room.roomTags || "精選優質房源").split(",").map(t => `<span class="public-tag"># ${t.trim()}</span>`).join("");
@@ -757,8 +763,8 @@
                         if(!isPaid && !bill.name.includes("押金")) {
                             badge = `<div style="display:flex; gap:2px; width:100%;">${badge}<button class="action-btn" style="color:#06b6d4; font-size:11px;" onclick="event.stopPropagation(); copyLineMessage('${room.tenant}', '${room.number}', '${bill.name}', ${bill.amount})">💬</button></div>`;
                         }
-                        if (bill.name.includes("押金")) {
-                            depositHTML = `<div class="extra-row"><span>${bill.name}: <strong>$${bill.amount}</strong></span><div style="width:70px;">${badge}</div></div>`;
+                        if (bill.name.includes("押金") || bill.name.includes("電費") || bill.name.includes("管理") || bill.name.includes("清潔") || bill.name.includes("寵物")) {
+                            depositHTML += `<div class="extra-row"><span>${bill.name}: <strong>$${bill.amount}</strong></span><div style="width:70px;">${badge}</div></div>`;
                         } else {
                             let borderStyle = (normalizeYM(bill.name) === curYM) ? 'border: 2px solid #2563eb; background: #eff6ff;' : '';
                             monthsHTML += `<div class="bill-row" style="${borderStyle}"><span>${bill.name}</span><strong>$${bill.amount}</strong>${badge}</div>`;
@@ -779,7 +785,7 @@
                             <div class="info-text">📅 租期: ${room.rentPeriod}</div>
                             ${room.memo ? `<div class="memo-badge">📝 ${room.memo}</div>` : ''}
                             <div class="ledger-box">
-                                <div class="ledger-title">📅 彈性跨年合約現金流 (12個月)</div>
+                                <div class="ledger-title">📅 彈性合約現金流欄位</div>
                                 <div class="bill-grid">${depositHTML}${monthsHTML}</div>
                             </div>
                         </div>`;
@@ -866,6 +872,10 @@
             document.getElementById("inputRoomImg").value = room.roomImg || "";
             document.getElementById("inputRoomTags").value = room.roomTags || "";
             document.getElementById("inputMemo").value = room.memo || "";
+            
+            // 載入該房間舊有的非月租型帳單到暫存區（如水電、管理、清潔費等）
+            tempCustomBills = room.bills.filter(b => b.name.includes("押金") || b.name.includes("(") || b.name.includes("管理") || b.name.includes("清潔") || b.name.includes("寵物"));
+            document.getElementById("customListVisual").innerHTML = tempCustomBills.map(item => `<li>${item.name}: $${item.amount}</li>`).join("");
         }
 
         function openPublicEditRoomModal(gIdx, rIdx) {
@@ -904,6 +914,7 @@
             let tenant = document.getElementById("inputTenant").value || "待租";
             let rent = Number(document.getElementById("inputRent").value);
             let period = document.getElementById("inputPeriod").value;
+            let deposit = Number(document.getElementById("inputDeposit").value) || 0;
             
             let rawImgUrl = document.getElementById("inputRoomImg").value;
             let processedImgUrl = convertGoogleDriveLink(rawImgUrl);
@@ -916,6 +927,22 @@
             let isEdit = oldGIdx !== "" && oldRIdx !== "";
 
             let bills = [];
+            
+            // 1. 建立或保留房屋單次押金
+            if (deposit > 0) {
+                let oldDepositPaid = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => b.name === "房屋押金")?.paidDate || "") : "";
+                bills.push({ name: "房屋押金", amount: deposit, paidDate: oldDepositPaid });
+            }
+
+            // 2. 匯入計算機產生或原本就存著的自訂項目（管理費、清潔費、寵物費、獨立水電等）
+            tempCustomBills.forEach(cb => {
+                if(cb.name !== "房屋押金") {
+                    let oldPaid = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => b.name === cb.name)?.paidDate || "") : "";
+                    bills.push({ name: cb.name, amount: cb.amount, paidDate: oldPaid });
+                }
+            });
+
+            // 3. 自動生成 12 個月的基本房租
             let leaseMonths = generateLeaseMonths(period);
             for (let i = 0; i < 12; i++) {
                 let oldDate = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => normalizeYM(b.name) === normalizeYM(leaseMonths[i]))?.paidDate || "") : "";
