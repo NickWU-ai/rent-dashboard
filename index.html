@@ -31,10 +31,12 @@
         .room-card.public-showcase { background-color: #ffffff !important; border: 1px solid #e2e8f0 !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 0 !important; display: flex; flex-direction: column; }
         .public-img-wrapper { width: 100%; height: 180px; background-color: #e2e8f0; background-size: cover; background-position: center; position: relative; }
         .public-badge { position: absolute; top: 12px; left: 12px; background: #10b981; color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
-        .public-content { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .public-content { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
         .public-tag-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
         .public-tag { background: #f1f5f9; color: #475569; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
-        .public-price { font-size: 18px; font-weight: 800; color: #2563eb; margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 8px; }
+        .public-price { font-size: 18px; font-weight: 800; color: #2563eb; margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .public-edit-trigger { font-size: 12px; color: #475569; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-weight: normal; }
+        .public-edit-trigger:hover { background: #e2e8f0; }
 
         .card-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; z-index: 10; }
         .action-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px; }
@@ -176,6 +178,7 @@
         </div>
     </div>
 
+    <!-- 房源設定彈出視窗（支援管理員完整編輯與公開頁直接喚醒） -->
     <div class="modal-overlay" id="roomModal">
         <div class="modal-box">
             <div class="modal-title" id="roomModalTitle">🚪 房源設定與多合約跨年優化</div>
@@ -214,7 +217,7 @@
                 <input type="text" id="inputMemo" placeholder="例如：冷氣去年剛換過...">
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id="utilityCalculatorWrapper">
                 <label>⚡ 獨立水電費計算機</label>
                 <div style="background-color: #f0fdf4; border: 1px dashed #bbf7d0; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
                     <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 0.8fr; gap: 4px; margin-bottom: 8px;">
@@ -234,7 +237,7 @@
                     <label>💰 每月基本租金</label>
                     <input type="number" id="inputRent" value="12000">
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="depositFormGroup">
                     <label>🤝 單次房屋押金</label>
                     <input type="number" id="inputDeposit" value="24000">
                 </div>
@@ -283,6 +286,7 @@
         let tempCustomBills = [];
         let currentFilter = 'all'; 
         let chartInstance = null;
+        let isPublicEditing = false; // 標記目前是否是從公開頁發起的編輯
 
         function normalizeYM(str) {
             if(!str) return "";
@@ -308,7 +312,7 @@
         document.getElementById("yearSelect").value = selectedYear;
 
         function checkPermission() {
-            if (!isAdmin) {
+            if (!isAdmin && !isPublicEditing) {
                 alert("🔒 目前為對外招租/唯讀模式。管理員請點擊右上角「管理員登入」。");
                 return false;
             }
@@ -317,7 +321,7 @@
 
         function toggleViewMode() {
             isAdmin = false; isFullView = false; currentFilter = 'vacant';
-            alert("👁️ 已切換為「對外公開招租頁模式」，財務隱私數據已安全隱藏。");
+            alert("👁️ 已切換為「對外公開招租頁模式」，已為您開放「直接編輯招租資訊」功能。");
             renderDashboard(false);
         }
 
@@ -400,7 +404,6 @@
             } catch(e) { return months; }
         }
 
-        // 🧠 新增功能：智能一鍵續約推算區間
         function openRenewModal(gIdx, rIdx) {
             if (!checkPermission()) return;
             let group = myData[selectedYear][gIdx];
@@ -411,7 +414,6 @@
             document.getElementById("renewTargetInfo").value = `${group.groupName} - ${room.number}室 (租客: ${room.tenant})`;
             document.getElementById("renewNewRent").value = room.rent || 0;
 
-            // 智能核心：解析舊約結束日，自動加 1 個月作為新約起始日
             let nextPeriod = "2027/06 ~ 2028/05"; 
             if (room.rentPeriod && room.rentPeriod.includes("~")) {
                 try {
@@ -445,18 +447,15 @@
             let currentGroup = myData[selectedYear][gIdx];
             let oldRoom = currentGroup.rooms[rIdx];
 
-            // 抓取新約起始年度
             let targetYear = newPeriod.split("/")[0].trim();
             if(!myData[targetYear]) myData[targetYear] = [];
             
-            // 檢查目標年度是否存在該社區，沒有就生一個
             let targetGroup = myData[targetYear].find(g => g.groupName === currentGroup.groupName);
             if(!targetGroup) {
                 targetGroup = { groupName: currentGroup.groupName, rooms: [] };
                 myData[targetYear].push(targetGroup);
             }
 
-            // 新增彈性跨年全新 12 個月格子
             let newBills = [];
             let leaseMonths = generateLeaseMonths(newPeriod);
             for(let i=0; i<12; i++) {
@@ -477,7 +476,6 @@
 
             targetGroup.rooms.push(newRoomObj);
             
-            // 智能跳轉切換到新年度畫面
             selectedYear = targetYear;
             document.getElementById("yearSelect").value = selectedYear;
             
@@ -554,7 +552,7 @@
         }
 
         function saveToCloud() {
-            if (!isAdmin) return; 
+            // 開放招租頁直接修改時也能夠儲存
             let overlay = document.getElementById("sync-overlay");
             if(overlay) overlay.style.display = "flex";
             let currentJson = JSON.stringify(myData);
@@ -704,6 +702,7 @@
                     let tName = (room.tenant || "").trim();
                     let isVacant = tName === "" || tName.includes("待租");
 
+                    // 招租公開頁模式
                     if (isPublicViewMode) {
                         let imgUrl = room.roomImg || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80";
                         let tagHtml = (room.roomTags || "精選優質房源,採光佳").split(",").map(t => `<span class="public-tag"># ${t.trim()}</span>`).join("");
@@ -718,11 +717,15 @@
                                         <div style="font-size: 12px; color: #64748b;">📅 預計可租期：${room.rentPeriod || "隨時"}</div>
                                         <div class="public-tag-container">${tagHtml}</div>
                                     </div>
-                                    <div class="public-price">💰 租金 $${(room.rent || 0).toLocaleString()} 元/月</div>
+                                    <div class="public-price">
+                                        <span>💰 租金 $${(room.rent || 0).toLocaleString()} 元/月</span>
+                                        <button class="public-edit-trigger" onclick="openPublicEditRoomModal(${gIdx}, ${originalRoomIdx})">✍️ 快速編輯招租資訊</button>
+                                    </div>
                                 </div>
                             </div>`;
                     }
 
+                    // 管理員正常完整版後台
                     let depositHTML = "", monthsHTML = "";
                     room.bills.forEach((bill, bIdx) => {
                         let isPaid = bill.paidDate && bill.paidDate.trim() !== "";
@@ -802,7 +805,6 @@
         function closeGroupModal() { document.getElementById("groupModal").style.display = "none"; }
         
         function openRoomModal() {
-            if (!checkPermission()) return;
             let activeData = myData[selectedYear] || [];
             if (!activeData.length) return alert("請先建立社區！");
             document.getElementById("selectGroup").innerHTML = activeData.map((g, i) => `<option value="${i}">${g.groupName}</option>`).join("");
@@ -815,11 +817,21 @@
             document.getElementById("inputRoomTags").value = "冷氣, 雙人床, 獨立洗衣機";
             document.getElementById("inputMemo").value = "";
             
+            // 預設將完整版欄位打開
+            document.getElementById("selectGroup").disabled = false;
+            document.getElementById("inputRoomNumber").disabled = false;
+            document.getElementById("inputTenant").disabled = false;
+            document.getElementById("inputPeriod").disabled = false;
+            document.getElementById("inputMemo").disabled = false;
+            document.getElementById("utilityCalculatorWrapper").style.display = "block";
+            document.getElementById("depositFormGroup").style.display = "block";
+
             document.getElementById("roomModal").style.display = "flex";
         }
         
         function openEditRoomModal(gIdx, rIdx) {
             if (!checkPermission()) return;
+            isPublicEditing = false;
             let room = myData[selectedYear][gIdx].rooms[rIdx];
             openRoomModal();
             document.getElementById("editGroupIndex").value = gIdx; 
@@ -832,15 +844,36 @@
             document.getElementById("inputRoomTags").value = room.roomTags || "";
             document.getElementById("inputMemo").value = room.memo || "";
         }
-        function closeRoomModal() { document.getElementById("roomModal").style.display = "none"; }
 
-        function submitGroup() {
-            if (!checkPermission()) return;
-            let name = document.getElementById("inputGroupName").value; if(!name) return;
-            let flag = document.getElementById("editGroupIndexFlag").value;
-            if (flag !== "") { myData[selectedYear][flag].groupName = name; } 
-            else { myData[selectedYear].push({ groupName: name, rooms: [] }); }
-            renderDashboard(true, true); closeGroupModal();
+        // 🧠 新增：專屬公開頁發起的「簡易招租資料編輯器」
+        function openPublicEditRoomModal(gIdx, rIdx) {
+            isPublicEditing = true; // 開啟公開修改通行證
+            let room = myData[selectedYear][gIdx].rooms[rIdx];
+            openRoomModal();
+            
+            document.getElementById("editGroupIndex").value = gIdx; 
+            document.getElementById("editRoomIndex").value = rIdx;
+            document.getElementById("inputRoomNumber").value = room.number || ""; 
+            document.getElementById("inputTenant").value = room.tenant || "待租";
+            document.getElementById("inputPeriod").value = room.rentPeriod || ""; 
+            document.getElementById("inputRent").value = room.rent || 0;
+            document.getElementById("inputRoomImg").value = room.roomImg || "";
+            document.getElementById("inputRoomTags").value = room.roomTags || "";
+            document.getElementById("inputMemo").value = room.memo || "";
+
+            // 隱藏非公開的財務性/架構性敏感欄位，避免誤觸
+            document.getElementById("selectGroup").disabled = true;
+            document.getElementById("inputRoomNumber").disabled = true;
+            document.getElementById("inputTenant").disabled = true;
+            document.getElementById("inputPeriod").disabled = true;
+            document.getElementById("inputMemo").disabled = true;
+            document.getElementById("utilityCalculatorWrapper").style.display = "none";
+            document.getElementById("depositFormGroup").style.display = "none";
+        }
+
+        function closeRoomModal() { 
+            document.getElementById("roomModal").style.display = "none"; 
+            isPublicEditing = false;
         }
 
         function submitRoom() {
@@ -858,6 +891,7 @@
             let oldRIdx = document.getElementById("editRoomIndex").value;
             let isEdit = oldGIdx !== "" && oldRIdx !== "";
 
+            // 自動同步底層 12 個月的應收帳單租金
             let bills = [];
             let leaseMonths = generateLeaseMonths(period);
             for (let i = 0; i < 12; i++) {
@@ -869,7 +903,10 @@
             if (isEdit) { myData[selectedYear][gIdx].rooms[oldRIdx] = roomObj; } 
             else { myData[selectedYear][gIdx].rooms.push(roomObj); }
             
-            renderDashboard(true, false); closeRoomModal();
+            closeRoomModal();
+            renderDashboard(true, false); 
+            if(isPublicEditing) { alert("✨ 招租資訊已即時同步更新！"); }
+            isPublicEditing = false;
         }
 
         function deleteRoom(gIdx, rIdx) {
