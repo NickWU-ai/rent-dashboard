@@ -23,19 +23,20 @@
         
         .card-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; width: 100%; }
         
-        /* 房源卡片 */
+        /* 房源卡片基礎 */
         .room-card { background-color: #f8fafc; border-radius: 12px; padding: 18px; position: relative; border: 1px solid #e2e8f0; transition: all 0.2s; overflow: hidden; width: 100%; }
         .room-card.expiry-warning { border: 2px solid #f97316 !important; background-color: #fff7ed !important; }
         
         /* 🏠 招租公開頁風格卡片 */
         .room-card.public-showcase { background-color: #ffffff !important; border: 1px solid #e2e8f0 !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 0 !important; display: flex; flex-direction: column; }
-        .public-img-wrapper { width: 100%; height: 220px; background-color: #f1f5f9; background-size: contain; background-repeat: no-repeat; background-position: center; position: relative; border-bottom: 1px solid #e2e8f0; }
+        .public-img-container { width: 100%; height: 220px; background-color: #f1f5f9; position: relative; border-bottom: 1px solid #e2e8f0; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        .public-img-container img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .public-badge { position: absolute; top: 12px; left: 12px; background: #10b981; color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; z-index: 5; }
-        .public-content { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+        .public-content { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .public-tag-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
         .public-tag { background: #f1f5f9; color: #475569; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
-        .public-price { font-size: 18px; font-weight: 800; color: #2563eb; margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .public-edit-trigger { font-size: 12px; color: #475569; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-weight: normal; }
+        .public-price { font-size: 17px; font-weight: 800; color: #2563eb; margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .public-edit-trigger { font-size: 11px; color: #475569; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-weight: normal; }
         .public-edit-trigger:hover { background: #e2e8f0; }
 
         .card-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; z-index: 10; }
@@ -162,12 +163,12 @@
     
     <div id="group-zone"></div>
 
-    <!-- 各種彈出視窗 -->
+    <!-- 社區設定彈出視窗 -->
     <div class="modal-overlay" id="groupModal">
         <div class="modal-box">
-            <div class="modal-title" id="groupModalTitle">📍 新增社區群組</div>
+            <div class="modal-title" id="groupModalTitle" style="font-weight:bold; font-size:16px;">📍 新增社區群組</div>
             <input type="hidden" id="editGroupIndexFlag" value="">
-            <div class="form-group">
+            <div class="form-group" style="margin-top:15px;">
                 <label>社區/街道名稱</label>
                 <input type="text" id="inputGroupName" placeholder="例如：福中街">
             </div>
@@ -181,10 +182,10 @@
     <!-- 房源設定彈出視窗 -->
     <div class="modal-overlay" id="roomModal">
         <div class="modal-box">
-            <div class="modal-title" id="roomModalTitle">🚪 房源設定與多合約跨年優化</div>
+            <div class="modal-title" id="roomModalTitle" style="font-weight:bold; font-size:16px;">🚪 房源設定與招租優化</div>
             <input type="hidden" id="editGroupIndex" value="">
             <input type="hidden" id="editRoomIndex" value="">
-            <div class="form-row-grid">
+            <div class="form-row-grid" style="margin-top:15px;">
                 <div class="form-group">
                     <label>隸屬社區</label>
                     <select id="selectGroup"></select>
@@ -200,7 +201,7 @@
                     <input type="text" id="inputTenant" placeholder="例如：林小華">
                 </div>
                 <div class="form-group">
-                    <label>📅 租合約期 (支援跨年度)</label>
+                    <label>📅 租約期/預計可租期</label>
                     <input type="text" id="inputPeriod" value="2026/06 ~ 2027/05" placeholder="格式: 2026/06 ~ 2027/05">
                 </div>
             </div>
@@ -209,7 +210,7 @@
                 <input type="text" id="inputRoomImg" placeholder="可直接貼上 https://drive.google.com/... 連結">
             </div>
             <div class="form-group">
-                <label>🏷️ 房屋配套設備 (多選，公開頁展示)</label>
+                <label>🏷️ 房屋配套設備 (多選，用逗號隔開)</label>
                 <input type="text" id="inputRoomTags" placeholder="冷氣, 雙人床, 獨立洗衣機, 陽台, 即可入住">
             </div>
             <div class="form-group">
@@ -288,11 +289,10 @@
         let chartInstance = null;
         let isPublicEditing = false;
 
-        // 🧠 核心增強：自動將 Google Drive 網頁共用網址轉換成直連圖片 URL 的神奇魔法
+        // 🧠 核心轉換機制：自動重組網址字串
         function convertGoogleDriveLink(url) {
             if (!url) return "";
             let cleaned = url.trim();
-            // 識別是否包含 drive.google.com 且包含檔案 id 模式
             if (cleaned.includes("drive.google.com")) {
                 let match = cleaned.match(/\/d\/([a-zA-Z0-9-_]+)/) || cleaned.match(/id=([a-zA-Z0-9-_]+)/);
                 if (match && match[1]) {
@@ -651,6 +651,19 @@
             });
         }
 
+        function submitGroup() {
+            if (!checkPermission()) return;
+            let name = document.getElementById("inputGroupName").value; if (!name) return;
+            let flagIdx = document.getElementById("editGroupIndexFlag").value;
+            if (!myData[selectedYear]) myData[selectedYear] = [];
+            
+            if (flagIdx !== "") { myData[selectedYear][flagIdx].groupName = name; } 
+            else { myData[selectedYear].push({ groupName: name, rooms: [] }); }
+            
+            closeGroupModal();
+            renderDashboard(true, true);
+        }
+
         function renderDashboard(triggerSave = true, forceRefreshDropdown = false) {
             updateFilterDropdown(forceRefreshDropdown); 
             updateAuthUI(); 
@@ -712,15 +725,15 @@
                     let tName = (room.tenant || "").trim();
                     let isVacant = tName === "" || tName.includes("待租");
 
-                    // 🏠 訪客模式招租卡片
+                    // 🏠 訪客模式招租卡片（徹底切斷架構，嚴禁出現備註與內部資訊）
                     if (isPublicViewMode) {
-                        // 如果未填連結，則採用預設的精緻房間插圖
                         let imgUrl = room.roomImg || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80";
                         let tagHtml = (room.roomTags || "精選優質房源").split(",").map(t => `<span class="public-tag"># ${t.trim()}</span>`).join("");
                         return `
                             <div class="room-card public-showcase">
-                                <div class="public-img-wrapper" style="background-image: url('${imgUrl}')">
+                                <div class="public-img-container">
                                     <span class="public-badge">🔥 歡迎預約看房</span>
+                                    <img src="${imgUrl}" onerror="this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80'" alt="房間照片">
                                 </div>
                                 <div class="public-content">
                                     <div>
@@ -736,7 +749,7 @@
                             </div>`;
                     }
 
-                    // 管理員後台視圖
+                    // 🔐 管理員後台卡片
                     let depositHTML = "", monthsHTML = "";
                     room.bills.forEach((bill, bIdx) => {
                         let isPaid = bill.paidDate && bill.paidDate.trim() !== "";
@@ -892,7 +905,6 @@
             let rent = Number(document.getElementById("inputRent").value);
             let period = document.getElementById("inputPeriod").value;
             
-            // 🧠 在這裡直接進行 Google 雲端網址防呆轉換
             let rawImgUrl = document.getElementById("inputRoomImg").value;
             let processedImgUrl = convertGoogleDriveLink(rawImgUrl);
             
@@ -916,7 +928,7 @@
             
             closeRoomModal();
             renderDashboard(true, false); 
-            if(isPublicEditing) { alert("✨ 招租資訊與雲端照片已即時同步更新！"); }
+            if(isPublicEditing) { alert("✨ 招租資訊與雲端照片已同步更新！"); }
             isPublicEditing = false;
         }
 
