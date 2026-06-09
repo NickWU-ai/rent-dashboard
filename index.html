@@ -878,7 +878,7 @@
             }
 
             // 渲染垃圾桶暫存區 UI (僅限管理員登入或完整閱覽時看得到)
-            if ((isAdmin || isFullView) && myData["trash_bin"] && myData["trash_bin"].length > 0) {
+            if ((isAdmin || isFullView) && myData["trash_bin"] ) {
                 trashZone.innerHTML = `
                 <div class="trash-section">
                     <div class="trash-header">
