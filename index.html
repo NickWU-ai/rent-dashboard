@@ -47,7 +47,6 @@
         .status-paid { background-color: #dcfce7; color: #15803d; }
         .status-unpaid { background-color: #fee2e2; color: #b91c1c; }
 
-        /* 垃圾桶暫存區樣式 */
         .trash-section { background-color: #f1f5f9; border: 2px dashed #94a3b8; border-radius: 16px; padding: 25px; margin-top: 40px; }
         .trash-section.has-items { background-color: #fff5f5; border-color: #fca5a5; }
         .trash-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #cbd5e1; padding-bottom: 12px; margin-bottom: 20px; }
@@ -104,12 +103,12 @@
             <div class="subtitle" id="connection-status">🟢 系統載入中...</div>
         </div>
         <div>
-            <button class="btn" id="viewerBtn" style="background-color: #0ea5e9; color: white;" onclick="toggleViewMode()">👁️ 完整閱覽登入</button>
-            <button class="btn" id="adminBtn" style="background-color: #475569; color: white;" onclick="toggleAdminMode()">🔐 管理員登入</button>
-            <button class="btn" id="headerSync" style="background-color: #64748b; color: white;" onclick="forceDownloadFromCloud()">🔄 雲端同步</button>
-            <button class="btn" id="backupBtn" style="background-color: #f59e0b; color: white;" onclick="downloadBackup()">📥 下載備份</button>
-            <button class="btn btn-primary" id="headerAddGroup" onclick="openGroupModal()">＋ 新增社區</button>
-            <button class="btn btn-primary" id="headerAddRoom" style="background-color: #10b981;" onclick="openRoomModal()">＋ 新增房源</button>
+            <button type="button" class="btn" id="viewerBtn" style="background-color: #0ea5e9; color: white;" onclick="toggleViewMode()">👁️ 完整閱覽登入</button>
+            <button type="button" class="btn" id="adminBtn" style="background-color: #475569; color: white;" onclick="toggleAdminMode()">🔐 管理員登入</button>
+            <button type="button" class="btn" id="headerSync" style="background-color: #64748b; color: white;" onclick="forceDownloadFromCloud()">🔄 雲端同步</button>
+            <button type="button" class="btn" id="backupBtn" style="background-color: #f59e0b; color: white;" onclick="downloadBackup()">📥 下載備份</button>
+            <button type="button" class="btn btn-primary" id="headerAddGroup" onclick="openGroupModal()">＋ 新增社區</button>
+            <button type="button" class="btn btn-primary" id="headerAddRoom" style="background-color: #10b981;" onclick="openRoomModal()">＋ 新增房源</button>
         </div>
     </div>
     
@@ -153,7 +152,7 @@
                 </select>
             </div>
         </div>
-        <button id="exportBtn" class="btn" style="background-color: #16a34a; color: white;" onclick="exportToCSV()">📊 匯出本月 Excel 報表</button>
+        <button type="button" id="exportBtn" class="btn" style="background-color: #16a34a; color: white;" onclick="exportToCSV()">📊 匯出本月 Excel 報表</button>
     </div>
     
     <div id="group-zone"></div>
@@ -168,12 +167,13 @@
                 <input type="text" id="inputGroupName" placeholder="例如：福中街">
             </div>
             <div class="modal-buttons">
-                <button class="btn" style="background-color:#cbd5e1;" onclick="closeGroupModal()">取消</button>
-                <button class="btn btn-primary" id="submitGroupBtn" onclick="submitGroup()">確定建立</button>
+                <button type="button" class="btn" style="background-color:#cbd5e1;" onclick="closeGroupModal()">取消</button>
+                <button type="button" class="btn btn-primary" id="submitGroupBtn" onclick="submitGroup()">確定建立</button>
             </div>
         </div>
     </div>
 
+    <!-- 編輯房間彈窗 -->
     <div class="modal-overlay" id="roomModal">
         <div class="modal-box">
             <div class="modal-title" id="roomModalTitle">🚪 新增房源與財務設定</div>
@@ -204,6 +204,7 @@
                 <input type="text" id="inputMemo" placeholder="例如：冷氣剛換新、車位在B2...">
             </div>
 
+            <!-- 獨立計費區外框 -->
             <div class="form-group" id="utilityCalculatorWrapper">
                 <label>⚡ 獨立水電費計算機 (自動匯入臨時特殊月費)</label>
                 <div class="custom-item-box" style="background-color: #f0fdf4; border-color: #bbf7d0; margin-bottom: 10px;">
@@ -213,7 +214,7 @@
                         <input type="number" id="calcCurr" placeholder="本次" style="padding:6px;">
                         <input type="number" id="calcRate" value="5" placeholder="單價" style="padding:6px;">
                     </div>
-                    <button class="btn" style="background-color: #16a34a; color: white; width: 100%; padding: 6px; font-size: 12px; font-weight: bold; border-radius: 4px;" onclick="calculateUtility()">🧮 計算並匯入下方項目</button>
+                    <button type="button" class="btn" style="background-color: #16a34a; color: white; width: 100%; padding: 6px; font-size: 12px; font-weight: bold; border-radius: 4px;" onclick="calculateUtility()">🧮 計算並匯入下方項目</button>
                 </div>
             </div>
 
@@ -242,20 +243,23 @@
                 <label>🐾 每月寵物清潔費</label>
                 <input type="number" id="inputPet" value="0">
             </div>
+            
+            <!-- 自訂臨時項目區外框 -->
             <div class="form-group" id="customBillSectionWrapper">
                 <label>✍️ 其他臨時特殊月費</label>
                 <div class="custom-item-box" id="customItemBoxSection">
                     <div class="custom-input-group">
                         <input type="text" id="customName" placeholder="項目名稱" style="flex: 2;">
                         <input type="number" id="customAmount" placeholder="金額" style="flex: 1;">
-                        <button class="btn btn-primary" style="padding: 0 12px; background-color: #475569;" onclick="addCustomBillItem()">＋加入</button>
+                        <button type="button" class="btn btn-primary" style="padding: 0 12px; background-color: #475569;" onclick="addCustomBillItem()">＋加入</button>
                     </div>
                     <ul class="custom-list" id="customListVisual"></ul>
                 </div>
             </div>
+            
             <div class="modal-buttons">
-                <button class="btn" style="background-color:#cbd5e1;" onclick="closeRoomModal()">取消</button>
-                <button class="btn btn-primary" style="background-color: #10b981;" id="submitRoomBtn" onclick="submitRoom()">儲存房源</button>
+                <button type="button" class="btn" style="background-color:#cbd5e1;" onclick="closeRoomModal()">取消</button>
+                <button type="button" class="btn btn-primary" style="background-color: #10b981;" id="submitRoomBtn" onclick="submitRoom()">儲存房源</button>
             </div>
         </div>
     </div>
@@ -274,7 +278,6 @@
         let currentFilter = 'all'; 
         let chartInstance = null;
 
-        // 初始化與讀取本地暫存
         try {
             let localData = localStorage.getItem("date_driven_landlord_data");
             if (localData && localData !== "[]" && localData !== "undefined") {
@@ -742,7 +745,7 @@
                 groupZone.innerHTML = `
                     <div style="text-align:center; padding:60px; color:#64748b; background:white; border-radius:16px; border:1px dashed #cbd5e1; margin-top:20px;">
                         <p style="font-size:18px; margin-bottom:12px;">👋 歡迎來到 ${selectedYear} 年度帳本！</p>
-                        ${isAdmin ? `<button class="btn btn-primary" onclick="openGroupModal()">＋ 建立此年度第一個社區</button>` : `<p style="font-size:14px; color:#2563eb; font-weight:bold;">🔒 請登入管理員以新增社區資產</p>`}
+                        ${isAdmin ? `<button type="button" class="btn btn-primary" onclick="openGroupModal()">＋ 建立此年度第一個社區</button>` : `<p style="font-size:14px; color:#2563eb; font-weight:bold;">🔒 請登入管理員以新增社區資產</p>`}
                     </div>`;
             } else {
                 groupZone.innerHTML = activeData.map((group, gIdx) => {
@@ -771,8 +774,8 @@
                         <div class="group-header">
                             <h2 class="group-title">📍 ${group.groupName} (${filteredRooms.length} 個符合房源)
                                 ${isAdmin ? `
-                                <button class="group-edit-btn" onclick="openEditGroupModal(${gIdx})">✏️ 編輯名稱</button>
-                                <button class="group-edit-btn" style="color: #ef4444;" onclick="deleteGroupToTrash(${gIdx})">🗑️ 刪除社區</button>` : ''}
+                                <button type="button" class="group-edit-btn" onclick="openEditGroupModal(${gIdx})">✏️ 編輯名稱</button>
+                                <button type="button" class="group-edit-btn" style="color: #ef4444;" onclick="deleteGroupToTrash(${gIdx})">🗑️ 刪除社區</button>` : ''}
                             </h2>
                         </div>
                         <div class="card-container" data-group-index="${gIdx}" ondragover="allowDrop(event)" ondrop="handleDrop(event)">
@@ -788,7 +791,7 @@
                                     let badge = `<span class="status-badge ${isPaid ? 'status-paid' : 'status-unpaid'}" style="${cursorStyle}" onclick="changePaidDate(${gIdx},${originalRoomIdx},${bIdx})">${isPaid ? bill.paidDate : '未收'}</span>`;
                                     
                                     if(!isPaid && !bill.name.includes("押金")) {
-                                        badge += ` <button class="action-btn" style="color:#06b6d4; font-size:12px; font-weight:bold;" onclick="event.stopPropagation(); copyLineMessage('${room.tenant}', '${room.number}', '${displayName}', ${bill.amount})">💬</button>`;
+                                        badge += ` <button type="button" class="action-btn" style="color:#06b6d4; font-size:12px; font-weight:bold;" onclick="event.stopPropagation(); copyLineMessage('${room.tenant}', '${room.number}', '${displayName}', ${bill.amount})">💬</button>`;
                                     }
                                     if (bill.name.includes("押金")) {
                                         depositHTML = `<div class="extra-row"><span>${bill.name}: <strong>$${bill.amount.toLocaleString()}</strong></span>${badge}</div>`;
@@ -802,7 +805,7 @@
                                 let repairsHTML = (room.repairs || []).map((rep, repIdx) => `
                                     <div style="display:flex; justify-content:space-between; font-size:11px; background:#f1f5f9; padding:4px 6px; border-radius:4px; margin-bottom:4px; color:#475569;">
                                         <span>🛠️ ${rep.date} ${rep.name} (<strong>$${rep.cost.toLocaleString()}</strong>)</span>
-                                        ${isAdmin ? `<button style="border:none; background:none; color:#ef4444; cursor:pointer;" onclick="event.stopPropagation(); deleteRepairLog(${gIdx},${originalRoomIdx},${repIdx})">✕</button>` : ''}
+                                        ${isAdmin ? `<button type="button" style="border:none; background:none; color:#ef4444; cursor:pointer;" onclick="event.stopPropagation(); deleteRepairLog(${gIdx},${originalRoomIdx},${repIdx})">✕</button>` : ''}
                                     </div>
                                 `).join("");
 
@@ -814,8 +817,8 @@
                                          data-room-index="${originalRoomIdx}">
                                         ${isAdmin ? `
                                         <div class="card-actions">
-                                            <button class="action-btn edit-btn" onclick="openEditRoomModal(${gIdx},${originalRoomIdx})">✏️</button>
-                                            <button class="action-btn delete-btn" onclick="deleteRoomToTrash(${gIdx},${originalRoomIdx})">✕</button>
+                                            <button type="button" class="action-btn edit-btn" onclick="openEditRoomModal(${gIdx},${originalRoomIdx})">✏️</button>
+                                            <button type="button" class="action-btn delete-btn" onclick="deleteRoomToTrash(${gIdx},${originalRoomIdx})">✕</button>
                                         </div>` : ''}
                                         <div class="room-number">🚪 ${room.number} 室</div>
                                         <div class="info-text">👤 租客: <strong>${room.tenant}</strong></div>
@@ -826,7 +829,7 @@
                                             <div class="ledger-title">📋 每月收費結構</div>
                                             <ul class="memo-text">${(room.details || []).map(d => `<li>${d}</li>`).join("")}</ul>
                                             
-                                            <div class="ledger-title">🛠️ 修繕與事件紀錄簿 ${isAdmin ? `<button style="color:#2563eb; background:none; border:none; cursor:pointer; font-weight:bold; font-size:11px;" onclick="addRepairLog(${gIdx},${originalRoomIdx})">＋新增</button>` : ''}</div>
+                                            <div class="ledger-title">🛠️ 修繕與事件紀錄簿 ${isAdmin ? `<button type="button" style="color:#2563eb; background:none; border:none; cursor:pointer; font-weight:bold; font-size:11px;" onclick="addRepairLog(${gIdx},${originalRoomIdx})">＋新增</button>` : ''}</div>
                                             <div style="max-height:80px; overflow-y:auto; margin-bottom:10px;">${repairsHTML || '<div style="font-size:11px; color:#94a3b8; text-align:center;">暫無紀錄</div>'}</div>
 
                                             <div class="ledger-title">💵 單次收費項目</div>${depositHTML}
@@ -853,8 +856,8 @@
                         </div>
                         ${isAdmin ? `
                         <div>
-                            <button class="btn btn-success" style="padding: 4px 10px; font-size: 12px;" onclick="restoreGroupFromTrash(${tIdx})">↩️ 還原社區</button>
-                            <button class="btn btn-danger" style="padding: 4px 10px; font-size: 12px;" onclick="deleteTrashItemPermanently(${tIdx})">✕ 粉碎</button>
+                            <button type="button" class="btn btn-success" style="padding: 4px 10px; font-size: 12px;" onclick="restoreGroupFromTrash(${tIdx})">↩️ 還原社區</button>
+                            <button type="button" class="btn btn-danger" style="padding: 4px 10px; font-size: 12px;" onclick="deleteTrashItemPermanently(${tIdx})">✕ 粉碎</button>
                         </div>` : ''}
                     </div>
                 `).join("") : `<div style="text-align:center; padding:10px; color:#94a3b8; font-size:13px;">無遭刪除的社區</div>`;
@@ -867,8 +870,8 @@
                         </div>
                         ${isAdmin ? `
                         <div>
-                            <button class="btn btn-success" style="padding: 4px 10px; font-size: 12px;" onclick="restoreRoomFromTrash(${rIdx})">↩️ 還原房間</button>
-                            <button class="btn btn-danger" style="padding: 4px 10px; font-size: 12px;" onclick="deleteRoomTrashPermanently(${rIdx})">✕ 粉碎</button>
+                            <button type="button" class="btn btn-success" style="padding: 4px 10px; font-size: 12px;" onclick="restoreRoomFromTrash(${rIdx})">↩️ 還原房間</button>
+                            <button type="button" class="btn btn-danger" style="padding: 4px 10px; font-size: 12px;" onclick="deleteRoomTrashPermanently(${rIdx})">✕ 粉碎</button>
                         </div>` : ''}
                     </div>
                 `).join("") : `<div style="text-align:center; padding:10px; color:#94a3b8; font-size:13px;">無遭刪除的房間</div>`;
@@ -877,7 +880,7 @@
                 <div class="trash-section ${!isTrashEmpty ? 'has-items' : ''}">
                     <div class="trash-header">
                         <h2 class="trash-title">🗑️ 垃圾桶暫存區管理 ${isTrashEmpty ? '(空)' : '(安全暫存保護中)'}</h2>
-                        ${(isAdmin && !isTrashEmpty) ? `<button class="btn btn-danger" style="padding: 5px 12px; font-size: 12px;" onclick="clearAllTrash()">⚠️ 一鍵粉碎清空</button>` : ''}
+                        ${(isAdmin && !isTrashEmpty) ? `<button type="button" class="btn btn-danger" style="padding: 5px 12px; font-size: 12px;" onclick="clearAllTrash()">⚠️ 一鍵粉碎清空</button>` : ''}
                     </div>
                     ${isTrashEmpty ? `
                         <div style="text-align:center; padding: 15px 0; color:#94a3b8; font-size:14px;">暫存區目前空空如也 📭 <br><small style="color:#94a3b8;">(不論刪除社區或單獨房間，皆會即時被打包儲存於此)</small></div>
@@ -1073,7 +1076,6 @@
             document.getElementById("submitRoomBtn").innerText = "確認新增";
             document.getElementById("editGroupIndex").value = ""; document.getElementById("editRoomIndex").value = "";
             
-            // 恢復顯示計算機與自訂月費區塊
             document.getElementById("utilityCalculatorWrapper").style.display = "block";
             document.getElementById("customBillSectionWrapper").style.display = "block";
             
@@ -1083,6 +1085,9 @@
             document.getElementById("inputDeposit").value = "24000"; document.getElementById("inputManage").value = "0";
             document.getElementById("inputParking").value = "0"; document.getElementById("inputPet").value = "0";
             document.getElementById("calcPrev").value = ""; document.getElementById("calcCurr").value = "";
+            document.getElementById("calcName").value = "電費"; document.getElementById("calcRate").value = "5";
+            document.getElementById("customName").value = ""; document.getElementById("customAmount").value = "";
+            
             document.getElementById("roomModal").style.display = "flex";
         }
 
@@ -1094,7 +1099,12 @@
             document.getElementById("submitRoomBtn").innerText = "儲存修改";
             document.getElementById("editGroupIndex").value = gIdx; document.getElementById("editRoomIndex").value = rIdx;
             
-            // 編輯模式下隱藏獨立水電費和自訂項目，避免舊邏輯干擾
+            // 安全防護：編輯模式隱藏時，同時清空裡面的值與潛在的屬性阻礙
+            document.getElementById("calcPrev").value = ""; 
+            document.getElementById("calcCurr").value = "";
+            document.getElementById("customName").value = "";
+            document.getElementById("customAmount").value = "";
+            
             document.getElementById("utilityCalculatorWrapper").style.display = "none";
             document.getElementById("customBillSectionWrapper").style.display = "none";
             
@@ -1120,18 +1130,24 @@
             closeGroupModal();
         }
 
-        // 🎯 重大核心修正：改為真正受 await 控管的阻斷式送出函式，避免瀏覽器跳轉攔截
         async function submitRoom() {
             if (!checkPermission()) return;
-            let gIdx = document.getElementById("selectGroup").value, num = document.getElementById("inputRoomNumber").value;
+            
+            let gIdx = document.getElementById("selectGroup").value;
+            let num = document.getElementById("inputRoomNumber").value;
             if(!num) return alert("請輸入房號");
             
-            let tenant = document.getElementById("inputTenant").value || "待租中", rent = Number(document.getElementById("inputRent").value);
-            let deposit = Number(document.getElementById("inputDeposit").value), period = document.getElementById("inputPeriod").value;
-            let memo = document.getElementById("inputMemo").value, manage = Number(document.getElementById("inputManage").value) || 0;
-            let parking = Number(document.getElementById("inputParking").value) || 0, pet = Number(document.getElementById("inputPet").value) || 0;
+            let tenant = document.getElementById("inputTenant").value || "待租中";
+            let rent = Number(document.getElementById("inputRent").value);
+            let deposit = Number(document.getElementById("inputDeposit").value);
+            let period = document.getElementById("inputPeriod").value;
+            let memo = document.getElementById("inputMemo").value;
+            let manage = Number(document.getElementById("inputManage").value) || 0;
+            let parking = Number(document.getElementById("inputParking").value) || 0;
+            let pet = Number(document.getElementById("inputPet").value) || 0;
 
-            let oldGIdx = document.getElementById("editGroupIndex").value, oldRIdx = document.getElementById("editRoomIndex").value;
+            let oldGIdx = document.getElementById("editGroupIndex").value;
+            let oldRIdx = document.getElementById("editRoomIndex").value;
             let isEdit = oldGIdx !== "" && oldRIdx !== "";
 
             let monthlyTotal = rent + manage + parking + pet;
@@ -1180,9 +1196,11 @@
                 myData[selectedYear][gIdx].rooms.push(roomObj); 
             }
 
-            // 執行主介面同步與上傳
-            await renderDashboard(true, false); 
+            // 完全異步安全儲存鏈
             closeRoomModal();
+            setTimeout(async () => {
+                await renderDashboard(true, false); 
+            }, 50);
         }
     </script>
 </body>
