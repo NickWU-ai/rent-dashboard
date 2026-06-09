@@ -204,7 +204,7 @@
                 <input type="text" id="inputMemo" placeholder="例如：冷氣剛換新、車位在B2...">
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id="utilityCalculatorWrapper">
                 <label>⚡ 獨立水電費計算機 (自動匯入臨時特殊月費)</label>
                 <div class="custom-item-box" style="background-color: #f0fdf4; border-color: #bbf7d0; margin-bottom: 10px;">
                     <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 0.8fr; gap: 6px; margin-bottom: 8px;">
@@ -242,7 +242,7 @@
                 <label>🐾 每月寵物清潔費</label>
                 <input type="number" id="inputPet" value="0">
             </div>
-            <div class="form-group">
+            <div class="form-group" id="customBillSectionWrapper">
                 <label>✍️ 其他臨時特殊月費</label>
                 <div class="custom-item-box" id="customItemBoxSection">
                     <div class="custom-input-group">
@@ -429,7 +429,6 @@
             filterSelect.value = currentFilter;
         }
 
-        // 雲端防覆蓋加載初始化機制
         if (myData[selectedYear].length === 0 && !isAdmin) {
             document.getElementById("connection-status").innerText = "⏳ 嘗試從雲端還原資料...";
             fetch(`${CLOUD_API_URL}?t=${Date.now()}`)
@@ -522,7 +521,6 @@
             a.click();
         }
 
-        // 🎯 核心改進：改用現代 Fetch API 異步上傳，確保阻斷式同步成功才刷新畫面
         async function saveToCloud() {
             if (!isAdmin) return; 
             let overlay = document.getElementById("sync-overlay");
@@ -535,7 +533,6 @@
             localStorage.setItem("date_driven_landlord_data", currentJson);
 
             try {
-                // 強制卡住等待 Google Apps Script 回應
                 let response = await fetch(CLOUD_API_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -593,6 +590,10 @@
             currentFilter = val;
             renderDashboard(false, false); 
         }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            renderDashboard(false, true);
+        });
 
         function exportToCSV() {
             let activeData = myData[selectedYear] || [];
@@ -703,7 +704,6 @@
             });
         }
 
-        // 主介面渲染
         async function renderDashboard(triggerSave = true, forceRefreshDropdown = false) {
             updateFilterDropdown(forceRefreshDropdown); 
             updateAuthUI(); 
@@ -840,7 +840,6 @@
                 }).join("");
             }
 
-            // 🌟 強制常駐垃圾桶渲染（只要是管理員或完整閱覽身分就無條件顯示在最下方）
             if (isAdmin || isFullView) {
                 let hasGroupTrash = myData["trash_bin"] && myData["trash_bin"].length > 0;
                 let hasRoomTrash = myData["room_trash_bin"] && myData["room_trash_bin"].length > 0;
@@ -895,7 +894,6 @@
             if(triggerSave) await saveToCloud();
         }
 
-        // 🎯 拖曳排序
         let dragSourceGroupIndex = null;
         let dragSourceRoomIndex = null;
 
@@ -930,7 +928,6 @@
             }
         }
 
-        // 🎯 刪除社區邏輯
         async function deleteGroupToTrash(gIdx) {
             if (!checkPermission()) return;
             let activeData = myData[selectedYear] || [];
@@ -945,7 +942,6 @@
             }
         }
 
-        // 🎯 完美阻斷式：刪除單一房間邏輯，徹底解決重新整理復活的 bug
         async function deleteRoomToTrash(gIdx, rIdx) {
             if (!checkPermission()) return;
             let activeData = myData[selectedYear] || [];
@@ -955,23 +951,18 @@
             if (confirm(`🚪 確定要將 ${targetRoom.number} 室移至垃圾桶嗎？\n(歷史收租紀錄與事件紀錄皆會完整封裝保留)`)) {
                 if (!myData["room_trash_bin"]) myData["room_trash_bin"] = [];
                 
-                // 1. 本地封裝寫入垃圾桶資料流
                 myData["room_trash_bin"].push({
                     deletedFromYear: selectedYear,
                     originalGroupName: originalGroupName,
                     roomData: targetRoom
                 });
 
-                // 2. 從當前活動陣列剃除
                 activeData[gIdx].rooms.splice(rIdx, 1);
-                
-                // 3. 執行非同步渲染並封鎖網頁，逼迫雲端完成儲存
                 await renderDashboard(true, false);
                 alert(`🛒 已成功將 ${targetRoom.number} 室移至下方的垃圾桶暫存區！`);
             }
         }
 
-        // 🎯 粉碎與還原操作
         async function deleteTrashItemPermanently(tIdx) {
             if (!checkPermission()) return;
             if (confirm("🔥 警告：此操作將永久粉碎該社區，無法再還原！確定繼續？")) {
@@ -1081,8 +1072,11 @@
             document.getElementById("roomModalTitle").innerText = "🚪 新增房源與財務設定";
             document.getElementById("submitRoomBtn").innerText = "確認新增";
             document.getElementById("editGroupIndex").value = ""; document.getElementById("editRoomIndex").value = "";
-            document.getElementById("customItemBoxSection").style.opacity = "1";
-            document.getElementById("customItemBoxSection").style.pointerEvents = "auto";
+            
+            // 恢復顯示計算機與自訂月費區塊
+            document.getElementById("utilityCalculatorWrapper").style.display = "block";
+            document.getElementById("customBillSectionWrapper").style.display = "block";
+            
             tempCustomBills = []; document.getElementById("customListVisual").innerHTML = "";
             document.getElementById("inputRoomNumber").value = ""; document.getElementById("inputTenant").value = "";
             document.getElementById("inputMemo").value = ""; document.getElementById("inputRent").value = "12000";
@@ -1099,8 +1093,11 @@
             document.getElementById("roomModalTitle").innerText = `✏️ 編輯 🚪 ${room.number} 室 房源`;
             document.getElementById("submitRoomBtn").innerText = "儲存修改";
             document.getElementById("editGroupIndex").value = gIdx; document.getElementById("editRoomIndex").value = rIdx;
-            document.getElementById("customItemBoxSection").style.opacity = "0.5";
-            document.getElementById("customItemBoxSection").style.pointerEvents = "none";
+            
+            // 編輯模式下隱藏獨立水電費和自訂項目，避免舊邏輯干擾
+            document.getElementById("utilityCalculatorWrapper").style.display = "none";
+            document.getElementById("customBillSectionWrapper").style.display = "none";
+            
             document.getElementById("selectGroup").value = gIdx;
             document.getElementById("inputRoomNumber").value = room.number; document.getElementById("inputTenant").value = room.tenant;
             document.getElementById("inputPeriod").value = room.rentPeriod; document.getElementById("inputMemo").value = room.memo || "";
@@ -1123,6 +1120,7 @@
             closeGroupModal();
         }
 
+        // 🎯 重大核心修正：改為真正受 await 控管的阻斷式送出函式，避免瀏覽器跳轉攔截
         async function submitRoom() {
             if (!checkPermission()) return;
             let gIdx = document.getElementById("selectGroup").value, num = document.getElementById("inputRoomNumber").value;
@@ -1172,16 +1170,20 @@
             let roomObj = { number: num, tenant, rentPeriod: period, memo, rent, deposit, manage, parking, pet, customTotal, details, bills, repairs };
 
             if (isEdit) {
-                if (oldGIdx != gIdx) { myData[selectedYear][oldGIdx].rooms.splice(oldRIdx, 1); myData[selectedYear][gIdx].rooms.push(roomObj); } 
-                else { myData[selectedYear][gIdx].rooms[oldRIdx] = roomObj; }
-            } else { myData[selectedYear][gIdx].rooms.push(roomObj); }
+                if (oldGIdx != gIdx) { 
+                    myData[selectedYear][oldGIdx].rooms.splice(oldRIdx, 1); 
+                    myData[selectedYear][gIdx].rooms.push(roomObj); 
+                } else { 
+                    myData[selectedYear][gIdx].rooms[oldRIdx] = roomObj; 
+                }
+            } else { 
+                myData[selectedYear][gIdx].rooms.push(roomObj); 
+            }
 
+            // 執行主介面同步與上傳
             await renderDashboard(true, false); 
             closeRoomModal();
         }
-
-        // 預設初次渲染
-        renderDashboard(false, true);
     </script>
 </body>
 </html>
