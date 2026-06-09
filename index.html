@@ -453,7 +453,7 @@
                 }).catch(() => { if(!isAdmin) document.getElementById("connection-status").innerText = "⚠️ 雲端連線失敗 (單機模式)"; });
         }
 
-        function handleYearChange(year) {
+        async function handleYearChange(year) {
             selectedYear = year;
             if (!myData[selectedYear] || myData[selectedYear].length === 0) {
                 let prevYear = String(Number(selectedYear) - 1);
@@ -465,7 +465,7 @@
             }
             currentFilter = 'all'; 
             document.getElementById("connection-status").innerText = `🟢 目前顯示：${selectedYear} 年度帳本`;
-            renderDashboard(true, true);
+            await renderDashboard(true, true);
         }
 
         function cloneStructureForNewYear(oldYearData) {
@@ -495,7 +495,7 @@
             document.getElementById("sync-overlay-text").innerText = "⬇️ 從雲端同步完整帳本中...";
             fetch(`${CLOUD_API_URL}?t=${Date.now()}`)
                 .then(res => res.json())
-                .then(cloudJson => {
+                .then(async (cloudJson) => {
                     if (cloudJson) {
                         if (Array.isArray(cloudJson)) {
                             myData = {}; myData[selectedYear] = cloudJson;
@@ -505,7 +505,7 @@
                         if (!myData["room_trash_bin"]) myData["room_trash_bin"] = [];
                         localStorage.setItem("date_driven_landlord_data", JSON.stringify(myData));
                         currentFilter = 'all';
-                        renderDashboard(false, true);
+                        await renderDashboard(false, true);
                         alert("✅ 雲端同步完成！");
                     } else { alert("⚠️ 攔截警告：雲端回傳資料異常。"); }
                 }).catch(() => alert("❌ 下載失敗。"))
@@ -529,21 +529,23 @@
             let overlay = document.getElementById("sync-overlay");
             if(overlay) {
                 overlay.style.display = "flex";
-                document.getElementById("sync-overlay-text").innerText = "⏳ 資料同步至雲端中，請勿關閉視窗...";
+                document.getElementById("sync-overlay-text").innerText = "⏳ 資料正同步儲存至雲端，請稍候...";
             }
             
             let currentJson = JSON.stringify(myData);
             localStorage.setItem("date_driven_landlord_data", currentJson);
 
             try {
+                // 升級傳輸協議：改用標準 JSON 傳輸模式，防止大型資料網址參數解析出錯
                 let response = await fetch(CLOUD_API_URL, {
                     method: "POST",
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    body: "jsonString=" + encodeURIComponent(currentJson)
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: currentJson
                 });
-                console.log("雲端同步成功", response);
+                console.log("雲端儲存成功，回應狀態:", response.status);
             } catch (error) {
-                console.error("雲端同步失敗，改存本地暫存", error);
+                console.error("雲端連線失敗，目前已保留在網頁本地緩存中", error);
+                alert("⚠️ 雲端同步時發生通訊障礙，資料目前僅安全儲存於本機瀏覽器。請檢查網路並點選上方「雲端同步」重新連線！");
             } finally {
                 if(overlay) overlay.style.display = "none";
             }
@@ -589,13 +591,13 @@
             document.getElementById("calcPrev").value = ""; document.getElementById("calcCurr").value = "";
         }
 
-        function handleFilterChange(val) {
+        async function handleFilterChange(val) {
             currentFilter = val;
-            renderDashboard(false, false); 
+            await renderDashboard(false, false); 
         }
 
-        document.addEventListener("DOMContentLoaded", function() {
-            renderDashboard(false, true);
+        document.addEventListener("DOMContentLoaded", async function() {
+            await renderDashboard(false, true);
         });
 
         function exportToCSV() {
@@ -782,7 +784,6 @@
                             ${filteredRooms.map((room) => {
                                 let originalRoomIdx = group.rooms.indexOf(room);
                                 let depositHTML = "", monthsHTML = "";
-                                let leaseMonths = generateLeaseMonths(room.rentPeriod);
                                 
                                 room.bills.forEach((bill, bIdx) => {
                                     let displayName = bill.name;
@@ -1099,7 +1100,6 @@
             document.getElementById("submitRoomBtn").innerText = "儲存修改";
             document.getElementById("editGroupIndex").value = gIdx; document.getElementById("editRoomIndex").value = rIdx;
             
-            // 安全防護：編輯模式隱藏時，同時清空裡面的值與潛在的屬性阻礙
             document.getElementById("calcPrev").value = ""; 
             document.getElementById("calcCurr").value = "";
             document.getElementById("customName").value = "";
@@ -1126,8 +1126,8 @@
             if (!myData[selectedYear]) myData[selectedYear] = [];
             
             if (flag !== "") { myData[selectedYear][flag].groupName = name; } else { myData[selectedYear].push({ groupName: name, rooms: [] }); }
-            await renderDashboard(true, true); 
             closeGroupModal();
+            await renderDashboard(true, true); 
         }
 
         async function submitRoom() {
@@ -1196,11 +1196,9 @@
                 myData[selectedYear][gIdx].rooms.push(roomObj); 
             }
 
-            // 完全異步安全儲存鏈
             closeRoomModal();
-            setTimeout(async () => {
-                await renderDashboard(true, false); 
-            }, 50);
+            // 關鍵修正：確實等待 renderDashboard（包含內部的雲端 saveToCloud）執行完畢再結束，不留非同步懸空漏洞
+            await renderDashboard(true, false); 
         }
     </script>
 </body>
