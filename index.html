@@ -47,7 +47,7 @@
         .status-paid { background-color: #dcfce7; color: #15803d; }
         .status-unpaid { background-color: #fee2e2; color: #b91c1c; }
 
-        /* 垃圾桶暫存區專用樣式 */
+        /* 垃圾桶暫存區樣式 */
         .trash-section { background-color: #f1f5f9; border: 2px dashed #94a3b8; border-radius: 16px; padding: 25px; margin-top: 40px; }
         .trash-section.has-items { background-color: #fff5f5; border-color: #fca5a5; }
         .trash-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #cbd5e1; padding-bottom: 12px; margin-bottom: 20px; }
@@ -67,6 +67,7 @@
         .custom-input-group { display: flex; gap: 8px; margin-bottom: 8px; }
         .custom-list { font-size: 12px; color: #475569; margin-top: 5px; padding-left: 20px; margin-bottom: 0; }
         .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+        
         #sync-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); display: none; justify-content: center; align-items: center; font-size: 22px; font-weight: bold; color: #2563eb; z-index: 9999; flex-direction: column; gap: 15px; }
         .spinner { border: 4px solid #e2e8f0; border-top: 4px solid #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -96,11 +97,6 @@
         <div class="spinner"></div>
         <div id="sync-overlay-text">⏳ 資料儲存至雲端中，請稍候...</div>
     </div>
-
-    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
-    <form id="cloud-form" method="POST" action="https://script.google.com/macros/s/AKfycbw-uwKwzY6mIDtQOkC81pUj68huKnx2qZ3PKIbQtKfPycfyGpqhC4ln1Um-idpTBNrGbw/exec" target="hidden_iframe" style="display:none;">
-        <input type="hidden" name="jsonString" id="formJsonField">
-    </form>
 
     <div class="header-container">
         <div>
@@ -439,7 +435,7 @@
             fetch(`${CLOUD_API_URL}?t=${Date.now()}`)
                 .then(res => res.json())
                 .then(cloudJson => {
-                    if (cloudJson && !isAdmin) { // 二次驗證，防止與管理員手動動作衝突
+                    if (cloudJson && !isAdmin) { 
                         if (Array.isArray(cloudJson)) {
                             myData = {}; myData[selectedYear] = cloudJson;
                         } else { myData = cloudJson; }
@@ -526,16 +522,31 @@
             a.click();
         }
 
-        function saveToCloud() {
+        // 🎯 核心改進：改用現代 Fetch API 異步上傳，確保阻斷式同步成功才刷新畫面
+        async function saveToCloud() {
             if (!isAdmin) return; 
             let overlay = document.getElementById("sync-overlay");
-            if(overlay) overlay.style.display = "flex";
+            if(overlay) {
+                overlay.style.display = "flex";
+                document.getElementById("sync-overlay-text").innerText = "⏳ 資料同步至雲端中，請勿關閉視窗...";
+            }
             
             let currentJson = JSON.stringify(myData);
             localStorage.setItem("date_driven_landlord_data", currentJson);
-            document.getElementById("formJsonField").value = currentJson;
-            document.getElementById("cloud-form").submit();
-            setTimeout(() => { if(overlay) overlay.style.display = "none"; }, 2500);
+
+            try {
+                // 強制卡住等待 Google Apps Script 回應
+                let response = await fetch(CLOUD_API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: "jsonString=" + encodeURIComponent(currentJson)
+                });
+                console.log("雲端同步成功", response);
+            } catch (error) {
+                console.error("雲端同步失敗，改存本地暫存", error);
+            } finally {
+                if(overlay) overlay.style.display = "none";
+            }
         }
 
         function copyLineMessage(tenant, roomNum, billName, amount) {
@@ -606,7 +617,7 @@
             a.click();
         }
 
-        function addRepairLog(gIdx, rIdx) {
+        async function addRepairLog(gIdx, rIdx) {
             if (!checkPermission()) return;
             let input = prompt("🛠️ 新增修繕與事件紀錄\n請輸入格式：『項目名稱,金額』\n例如：修洗臉盆,1200");
             if (!input) return;
@@ -621,15 +632,15 @@
             let dateStr = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
             
             activeData[gIdx].rooms[rIdx].repairs.push({ date: dateStr, name, cost });
-            renderDashboard(true, false);
+            await renderDashboard(true, false);
         }
 
-        function deleteRepairLog(gIdx, rIdx, repIdx) {
+        async function deleteRepairLog(gIdx, rIdx, repIdx) {
             if (!checkPermission()) return;
             if (confirm("確定要刪除這筆修繕事件紀錄嗎？")) {
                 let activeData = myData[selectedYear] || [];
                 activeData[gIdx].rooms[rIdx].repairs.splice(repIdx, 1);
-                renderDashboard(true, false);
+                await renderDashboard(true, false);
             }
         }
 
@@ -693,7 +704,7 @@
         }
 
         // 主介面渲染
-        function renderDashboard(triggerSave = true, forceRefreshDropdown = false) {
+        async function renderDashboard(triggerSave = true, forceRefreshDropdown = false) {
             updateFilterDropdown(forceRefreshDropdown); 
             updateAuthUI(); 
             
@@ -829,7 +840,7 @@
                 }).join("");
             }
 
-            // 🌟 強制常駐垃圾桶渲染模組 (只要解鎖身分就顯示，解決找不到的問題)
+            // 🌟 強制常駐垃圾桶渲染（只要是管理員或完整閱覽身分就無條件顯示在最下方）
             if (isAdmin || isFullView) {
                 let hasGroupTrash = myData["trash_bin"] && myData["trash_bin"].length > 0;
                 let hasRoomTrash = myData["room_trash_bin"] && myData["room_trash_bin"].length > 0;
@@ -881,7 +892,7 @@
             } else { trashZone.innerHTML = ""; }
             
             if (isAdmin || isFullView) drawChart();
-            if(triggerSave) saveToCloud();
+            if(triggerSave) await saveToCloud();
         }
 
         // 🎯 拖曳排序
@@ -898,7 +909,7 @@
         function handleDragEnd(e) { e.currentTarget.classList.remove('dragging'); }
         function allowDrop(e) { if (!isAdmin) return; e.preventDefault(); }
 
-        function handleDrop(e) {
+        async function handleDrop(e) {
             if (!isAdmin) return;
             e.preventDefault();
             let targetContainer = e.currentTarget.closest('.card-container');
@@ -915,12 +926,12 @@
                 let movingRoom = activeData[dragSourceGroupIndex].rooms.splice(dragSourceRoomIndex, 1)[0];
                 activeData[targetGroupIdx].rooms.splice(targetRoomIdx, 0, movingRoom);
                 dragSourceGroupIndex = null; dragSourceRoomIndex = null;
-                renderDashboard(true, false);
+                await renderDashboard(true, false);
             }
         }
 
         // 🎯 刪除社區邏輯
-        function deleteGroupToTrash(gIdx) {
+        async function deleteGroupToTrash(gIdx) {
             if (!checkPermission()) return;
             let activeData = myData[selectedYear] || [];
             let targetGroup = activeData[gIdx];
@@ -930,13 +941,12 @@
                 if (!myData["trash_bin"]) myData["trash_bin"] = [];
                 myData["trash_bin"].push(targetGroup);
                 activeData.splice(gIdx, 1);
-                renderDashboard(true, true);
-                saveToCloud();
+                await renderDashboard(true, true);
             }
         }
 
-        // 🎯 修正版：刪除單一房間邏輯（確保即時連動雲端）
-        function deleteRoomToTrash(gIdx, rIdx) {
+        // 🎯 完美阻斷式：刪除單一房間邏輯，徹底解決重新整理復活的 bug
+        async function deleteRoomToTrash(gIdx, rIdx) {
             if (!checkPermission()) return;
             let activeData = myData[selectedYear] || [];
             let originalGroupName = activeData[gIdx].groupName;
@@ -945,50 +955,49 @@
             if (confirm(`🚪 確定要將 ${targetRoom.number} 室移至垃圾桶嗎？\n(歷史收租紀錄與事件紀錄皆會完整封裝保留)`)) {
                 if (!myData["room_trash_bin"]) myData["room_trash_bin"] = [];
                 
+                // 1. 本地封裝寫入垃圾桶資料流
                 myData["room_trash_bin"].push({
                     deletedFromYear: selectedYear,
                     originalGroupName: originalGroupName,
                     roomData: targetRoom
                 });
 
+                // 2. 從當前活動陣列剃除
                 activeData[gIdx].rooms.splice(rIdx, 1);
-                alert(`🛒 已成功將 ${targetRoom.number} 室移至下方的垃圾桶暫存區！`);
                 
-                renderDashboard(true, false);
-                saveToCloud(); // 🌟 強制啟動雲端同步表單，防止重新整理復原！
+                // 3. 執行非同步渲染並封鎖網頁，逼迫雲端完成儲存
+                await renderDashboard(true, false);
+                alert(`🛒 已成功將 ${targetRoom.number} 室移至下方的垃圾桶暫存區！`);
             }
         }
 
         // 🎯 粉碎與還原操作
-        function deleteTrashItemPermanently(tIdx) {
+        async function deleteTrashItemPermanently(tIdx) {
             if (!checkPermission()) return;
             if (confirm("🔥 警告：此操作將永久粉碎該社區，無法再還原！確定繼續？")) {
                 myData["trash_bin"].splice(tIdx, 1);
-                renderDashboard(true, false);
-                saveToCloud();
+                await renderDashboard(true, false);
             }
         }
 
-        function deleteRoomTrashPermanently(rIdx) {
+        async function deleteRoomTrashPermanently(rIdx) {
             if (!checkPermission()) return;
             if (confirm("🔥 確定要永久粉碎這間房間的所有財務資料嗎？")) {
                 myData["room_trash_bin"].splice(rIdx, 1);
-                renderDashboard(true, false);
-                saveToCloud();
+                await renderDashboard(true, false);
             }
         }
 
-        function clearAllTrash() {
+        async function clearAllTrash() {
             if (!checkPermission()) return;
             if (confirm("💥 確定要清空垃圾桶嗎？這將粉碎裡面所有的歷史紀錄！")) {
                 myData["trash_bin"] = [];
                 myData["room_trash_bin"] = [];
-                renderDashboard(true, false);
-                saveToCloud();
+                await renderDashboard(true, false);
             }
         }
 
-        function restoreGroupFromTrash(tIdx) {
+        async function restoreGroupFromTrash(tIdx) {
             if (!checkPermission()) return;
             let restoredGroup = myData["trash_bin"].splice(tIdx, 1)[0];
             let targetYear = restoredGroup.deletedFromYear || selectedYear;
@@ -1002,11 +1011,10 @@
             alert(`↩️ 已還原社區「${restoredGroup.groupName}」至 ${targetYear} 年度！`);
             selectedYear = targetYear;
             document.getElementById("yearSelect").value = selectedYear;
-            renderDashboard(true, true);
-            saveToCloud();
+            await renderDashboard(true, true);
         }
 
-        function restoreRoomFromTrash(rIdx) {
+        async function restoreRoomFromTrash(rIdx) {
             if (!checkPermission()) return;
             let package = myData["room_trash_bin"].splice(rIdx, 1)[0];
             let targetYear = package.deletedFromYear || selectedYear;
@@ -1025,17 +1033,16 @@
             
             selectedYear = targetYear;
             document.getElementById("yearSelect").value = selectedYear;
-            renderDashboard(true, true);
-            saveToCloud();
+            await renderDashboard(true, true);
         }
 
-        function changePaidDate(gIdx, rIdx, bIdx) {
+        async function changePaidDate(gIdx, rIdx, bIdx) {
             if (!checkPermission()) return;
             let bill = myData[selectedYear][gIdx].rooms[rIdx].bills[bIdx];
             let newDate = prompt("請輸入入帳日期：\n(支援簡寫如 2603 代表 2026 年 3 月)", bill.paidDate || "");
             if (newDate === null) return;
             bill.paidDate = newDate.trim();
-            renderDashboard(true, false); 
+            await renderDashboard(true, false); 
         }
 
         function addCustomBillItem() {
@@ -1104,7 +1111,7 @@
 
         function closeRoomModal() { document.getElementById("roomModal").style.display = "none"; }
 
-        function submitGroup() {
+        async function submitGroup() {
             if (!checkPermission()) return;
             let name = document.getElementById("inputGroupName").value;
             if(!name) return alert("請輸入名稱");
@@ -1112,11 +1119,11 @@
             if (!myData[selectedYear]) myData[selectedYear] = [];
             
             if (flag !== "") { myData[selectedYear][flag].groupName = name; } else { myData[selectedYear].push({ groupName: name, rooms: [] }); }
-            renderDashboard(true, true); 
+            await renderDashboard(true, true); 
             closeGroupModal();
         }
 
-        function submitRoom() {
+        async function submitRoom() {
             if (!checkPermission()) return;
             let gIdx = document.getElementById("selectGroup").value, num = document.getElementById("inputRoomNumber").value;
             if(!num) return alert("請輸入房號");
@@ -1169,7 +1176,7 @@
                 else { myData[selectedYear][gIdx].rooms[oldRIdx] = roomObj; }
             } else { myData[selectedYear][gIdx].rooms.push(roomObj); }
 
-            renderDashboard(true, false); 
+            await renderDashboard(true, false); 
             closeRoomModal();
         }
 
