@@ -17,15 +17,16 @@
         .group-edit-btn { background: none; border: none; color: #2563eb; cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
         .group-edit-btn:hover { background-color: #eff6ff; }
         
+        /* RWD 彈性網格佈局 */
         .card-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
         
+        /* 房源卡片與到期警告樣式 */
         .room-card { background-color: #f8fafc; border-radius: 12px; padding: 20px; position: relative; border: 1px solid #e2e8f0; transition: all 0.2s; box-sizing: border-box; }
         .room-card.expiry-warning { border: 2px solid #f97316 !important; background-color: #fff7ed !important; }
         .expiry-badge { background-color: #ffedd5; color: #ea580c; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 6px; display: inline-block; border: 1px solid #fed7aa; }
         
-        .card-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 6px; }
-        .action-btn { background: #ffffff; border: 1px solid #e2e8f0; cursor: pointer; font-size: 13px; padding: 3px 6px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .action-btn:hover { background: #f1f5f9; }
+        .card-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; }
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px; }
         .delete-btn { color: #ef4444; }
         .edit-btn { color: #2563eb; }
         .room-number { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
@@ -57,6 +58,7 @@
         .spinner { border: 4px solid #e2e8f0; border-top: 4px solid #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* 修繕列表樣式 */
         .repair-item { font-size: 12px; display: flex; justify-content: space-between; align-items: center; background: #fff1f2; color: #9f1239; border: 1px solid #fecdd3; padding: 6px; border-radius: 6px; margin-top: 4px; }
 
         @media (max-width: 768px) {
@@ -195,7 +197,7 @@
             </div>
 
             <div class="form-group">
-                <label>⚡ 獨立水電費計算機</label>
+                <label>⚡ 獨立水電費計算機 (自動匯入臨時特殊月費)</label>
                 <div class="custom-item-box" style="background-color: #f0fdf4; border-color: #bbf7d0; margin-bottom: 10px;">
                     <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 0.8fr; gap: 6px; margin-bottom: 8px;">
                         <input type="text" id="calcName" value="電費" style="padding:6px;">
@@ -245,7 +247,7 @@
             </div>
             <div class="modal-buttons">
                 <button class="btn" style="background-color:#cbd5e1;" onclick="closeRoomModal()">取消</button>
-                <button class="btn btn-primary" style="background-color: #10b981;" id="submitRoomBtn" onclick="submitRoom()">確認存檔</button>
+                <button class="btn btn-primary" style="background-color: #10b981;" id="submitRoomBtn" onclick="submitRoom()">確認新增</button>
             </div>
         </div>
     </div>
@@ -456,11 +458,11 @@
                 return {
                     groupName: g.groupName,
                     rooms: g.rooms.map(r => {
-                        let resetBills = r.bills ? r.bills.map(b => ({ ...b, paidDate: "" })) : [];
+                        let resetBills = r.bills.map(b => ({ ...b, paidDate: "" }));
                         return {
                             number: r.number, tenant: r.tenant, rentPeriod: r.rentPeriod, memo: r.memo,
                             rent: r.rent, deposit: r.deposit, manage: r.manage, parking: r.parking, pet: r.pet,
-                            customTotal: r.customTotal, details: r.details ? [...r.details] : [], bills: resetBills, repairs: []
+                            customTotal: r.customTotal, details: [...r.details], bills: resetBills, repairs: []
                         };
                     })
                 };
@@ -600,7 +602,7 @@
             newAmount = Number(newAmount);
             if (isNaN(newAmount)) return alert("請輸入有效的數字！");
 
-            let newDate = prompt(`✍️ 修改 [${bill.name}] 的入帳收租日期\n(支援格式如：2603、2026/03/10，未繳請留空)：`, bill.paidDate || "");
+            let newDate = prompt(`✍️ 修改 [${bill.name}] 的入帳收租日期 (格式範例: 2026/06/10，若未繳請留空)：`, bill.paidDate || "");
             if (newDate === null) return;
 
             bill.amount = newAmount;
@@ -640,7 +642,7 @@
             let csvContent = `\ufeff年度,社區/街道,房號,租客,租約期,本月 (${curYM}) 應收金額,本月實收狀態,房源備註\n`;
             activeData.forEach(g => {
                 g.rooms.forEach(r => {
-                    let mBill = r.bills ? r.bills.find(b => b.name === curYM) : null;
+                    let mBill = r.bills.find(b => b.name === curYM);
                     let status = (mBill && mBill.paidDate) ? `已入帳(${mBill.paidDate})` : "未入帳";
                     let amt = mBill ? mBill.amount : 0;
                     csvContent += `"${selectedYear}","${g.groupName}","${r.number}","${r.tenant}","${r.rentPeriod}","$${amt.toLocaleString()}","${status}","${(r.memo || '').replace(/"/g, '""')}"\n`;
@@ -747,9 +749,9 @@
             if (gIdx !== null && rIdx !== null) {
                 document.getElementById("roomModalTitle").innerText = "🚪 編輯房源合約與財務參數";
                 let rm = myData[selectedYear][gIdx].rooms[rIdx];
-                document.getElementById("editGroupIndex").value = String(gIdx);
-                document.getElementById("editRoomIndex").value = String(rIdx);
-                groupSelect.value = String(gIdx);
+                document.getElementById("editGroupIndex").value = gIdx;
+                document.getElementById("editRoomIndex").value = rIdx;
+                groupSelect.value = gIdx;
                 document.getElementById("inputRoomNumber").value = rm.number;
                 document.getElementById("inputTenant").value = rm.tenant || "";
                 document.getElementById("inputPeriod").value = rm.rentPeriod || "";
@@ -790,7 +792,7 @@
         }
 
         function submitRoom() {
-            let gIdx = parseInt(document.getElementById("selectGroup").value);
+            let gIdx = document.getElementById("selectGroup").value;
             let num = document.getElementById("inputRoomNumber").value.trim();
             let tenant = document.getElementById("inputTenant").value.trim();
             let period = document.getElementById("inputPeriod").value.trim();
@@ -802,12 +804,9 @@
             let pet = Number(document.getElementById("inputPet").value) || 0;
 
             if (!num) return alert("房間號碼為必填欄位！");
-            
-            let editRoomIndexRaw = document.getElementById("editRoomIndex").value;
-            let isEdit = (editRoomIndexRaw !== "");
-            
-            let oldGIdx = isEdit ? parseInt(document.getElementById("editGroupIndex").value) : null;
-            let oldRIdx = isEdit ? parseInt(editRoomIndexRaw) : null;
+            let isEdit = document.getElementById("editRoomIndex").value !== "";
+            let oldGIdx = document.getElementById("editGroupIndex").value;
+            let oldRIdx = document.getElementById("editRoomIndex").value;
 
             let customTotal = tempCustomBills.reduce((acc, cur) => acc + cur.amount, 0);
             let details = [...tempCustomBills];
@@ -815,8 +814,8 @@
 
             let bills = [];
             if (isEdit) {
-                let oldRoom = myData[selectedYear][oldGIdx].rooms[oldRIdx];
-                bills = oldRoom.bills ? [...oldRoom.bills] : [];
+                bills = [...myData[selectedYear][oldGIdx].rooms[oldRIdx].bills];
+                // 如果修改了月總租金，同步更新未繳帳單的金額
                 bills.forEach(b => {
                     if(!b.paidDate) b.amount = monthlyTotal;
                 });
@@ -831,7 +830,7 @@
             let roomObj = { number: num, tenant, rentPeriod: period, memo, rent, deposit, manage, parking, pet, customTotal, details, bills, repairs };
 
             if (isEdit) {
-                if (oldGIdx !== gIdx) {
+                if (oldGIdx != gIdx) {
                     myData[selectedYear][oldGIdx].rooms.splice(oldRIdx, 1);
                     myData[selectedYear][gIdx].rooms.push(roomObj);
                 } else {
@@ -855,73 +854,9 @@
             }
         }
 
-        function moveRoom(gIdx, rIdx, direction) {
-            if (!checkPermission()) return;
-            let activeData = myData[selectedYear] || [];
-            if (!activeData[gIdx] || !activeData[gIdx].rooms) return;
-            
-            let rooms = activeData[gIdx].rooms;
-            let targetIdx = rIdx + direction;
-            
-            if (targetIdx >= 0 && targetIdx < rooms.length) {
-                let temp = rooms[rIdx];
-                rooms[rIdx] = rooms[targetIdx];
-                rooms[targetIdx] = temp;
-                
-                saveToCloud();
-                renderDashboard(true, false);
-            }
-        }
-
         // ==========================================
-        // 精準日期解析核心功能：極速相容 2603、202603 等無分隔號格式
+        // 核心渲染函式：儀表板與卡片渲染
         // ==========================================
-        function parsePaidDate(dateStr) {
-            if (!dateStr) return { year: "", month: -1 };
-            let clean = dateStr.trim().replace(/[-\/.]/g, ""); // 移除 - / . 等符號
-
-            // 處理純數字形式如 2603 或 260315
-            if (/^\d+$/.test(clean)) {
-                if (clean.length === 4) { // 範例: 2603
-                    let yy = clean.substring(0, 2);
-                    let mm = clean.substring(2, 4);
-                    return { year: "20" + yy, month: parseInt(mm) - 1 };
-                }
-                if (clean.length === 6) { // 範例: 202603 或 260315
-                    let firstTwo = parseInt(clean.substring(0, 2));
-                    if (firstTwo === 20) { // 這是 202603
-                        let yyyy = clean.substring(0, 4);
-                        let mm = clean.substring(4, 6);
-                        return { year: yyyy, month: parseInt(mm) - 1 };
-                    } else { // 這是 260315
-                        let yy = clean.substring(0, 2);
-                        let mm = clean.substring(2, 4);
-                        return { year: "20" + yy, month: parseInt(mm) - 1 };
-                    }
-                }
-                if (clean.length === 8) { // 範例: 20260315
-                    let yyyy = clean.substring(0, 4);
-                    let mm = clean.substring(4, 6);
-                    return { year: yyyy, month: parseInt(mm) - 1 };
-                }
-            }
-
-            // 標準斜線/橫線切分邏輯 (如 2026/03/15)
-            let parts = dateStr.split(/[-\/.]/);
-            if (parts.length === 3) {
-                return { year: parts[0].trim(), month: parseInt(parts[1].trim()) - 1 };
-            }
-            if (parts.length === 2) {
-                if (parts[0].trim().length === 4) {
-                    return { year: parts[0].trim(), month: parseInt(parts[1].trim()) - 1 };
-                } else {
-                    return { year: selectedYear, month: parseInt(parts[0].trim()) - 1 };
-                }
-            }
-
-            return { year: "", month: -1 };
-        }
-
         function renderDashboard(triggerCloudSave = true, forceRefreshDropdown = false) {
             updateAuthUI();
             updateFilterDropdown(forceRefreshDropdown);
@@ -994,7 +929,7 @@
                         room.bills.forEach((b, bIdx) => {
                             let bAmt = Number(b.amount) || 0;
                             let statusClass = b.paidDate ? "status-badge status-paid" : "status-badge status-unpaid";
-                            let statusTxt = b.paidDate ? `已入帳(${b.paidDate})` : "未入帳";
+                            let statusTxt = b.paidDate ? `已入帳(${b.paidDate.substring(5)})` : "未入帳";
                             
                             let highlightStyle = (b.name === currentYM) ? 'style="background: #fef08a; border: 1px solid #facc15;"' : '';
                             
@@ -1045,8 +980,6 @@
                     groupHtml += `
                         <div class="${cardClass}">
                             <div class="card-actions" style="display: ${isAdmin ? 'flex' : 'none'};">
-                                <button class="action-btn" onclick="moveRoom(${gIdx}, ${rIdx}, -1)" title="順序上移">⬆️</button>
-                                <button class="action-btn" onclick="moveRoom(${gIdx}, ${rIdx}, 1)" title="順序下移">⬇️</button>
                                 <button class="action-btn edit-btn" onclick="openRoomModal(${gIdx}, ${rIdx})">✏️</button>
                                 <button class="action-btn delete-btn" onclick="deleteRoom(${gIdx}, ${rIdx})">🗑️</button>
                             </div>
@@ -1094,6 +1027,7 @@
                 }
             });
 
+            // 頂部儀表板渲染
             let dbZone = document.getElementById("dashboard-zone");
             if (dbZone && (isAdmin || isFullView)) {
                 let totalProperties = 0, vacantCount = 0;
@@ -1128,6 +1062,9 @@
             }
         }
 
+        // ==========================================
+        // 圖表統計函數：加入完善防呆
+        // ==========================================
         function drawChart() {
             let monthlyCashflow = Array(12).fill(0);
             let activeData = myData[selectedYear] || [];
@@ -1136,13 +1073,16 @@
                 if (r.bills) {
                     r.bills.forEach(b => {
                         if (b.paidDate && b.paidDate.trim() !== "") {
-                            let parsed = parsePaidDate(b.paidDate);
-                            
-                            // 精準核對付款年度是否為當前選取的年度
-                            if (parsed.year === selectedYear && parsed.month >= 0 && parsed.month < 12) {
+                            let parts = b.paidDate.split("/");
+                            let mIdx = -1;
+                            if (parts.length >= 2) {
+                                let mStr = parts.length === 3 ? parts[1] : parts[0];
+                                mIdx = parseInt(mStr) - 1;
+                            }
+                            if (mIdx >= 0 && mIdx < 12) {
                                 let val = Number(b.amount) || 0;
                                 if (!isNaN(val)) {
-                                    monthlyCashflow[parsed.month] += val;
+                                    monthlyCashflow[mIdx] += val;
                                 }
                             }
                         }
