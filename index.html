@@ -20,10 +20,7 @@
         .group-edit-btn { background: none; border: none; color: #2563eb; cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
         .group-edit-btn:hover { background-color: #eff6ff; }
         
-        /* RWD 彈性網格佈局 */
         .card-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        
-        /* 房源卡片與到期警告樣式 */
         .room-card { background-color: #f8fafc; border-radius: 12px; padding: 20px; position: relative; border: 1px solid #e2e8f0; transition: all 0.2s; box-sizing: border-box; }
         .room-card.expiry-warning { border: 2px solid #f97316 !important; background-color: #fff7ed !important; }
         .room-card.draggable { cursor: grab; user-select: none; }
@@ -32,10 +29,10 @@
         
         .expiry-badge { background-color: #ffedd5; color: #ea580c; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 6px; display: inline-block; border: 1px solid #fed7aa; }
         
-        .card-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; }
+        .card-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; z-index: 10; }
         .action-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px; }
-        .delete-btn { color: #ef4444; }
-        .edit-btn { color: #2563eb; }
+        .delete-btn { color: #ef4444; font-weight: bold; font-size: 16px; }
+        .edit-btn { color: #2563eb; font-weight: bold; font-size: 14px; }
         .room-number { font-size: 18px; font-weight: 700; margin-bottom: 12px; padding-right: 50px; }
         .info-text { font-size: 13px; color: #64748b; margin-bottom: 6px; }
         .memo-badge { background-color: #fffbeb; color: #b45309; border: 1px dashed #fde68a; padding: 6px 10px; border-radius: 6px; font-size: 12px; margin-top: 8px; margin-bottom: 4px; line-height: 1.4; word-break: break-all; }
@@ -51,9 +48,9 @@
         .status-unpaid { background-color: #fee2e2; color: #b91c1c; }
 
         /* 垃圾桶暫存區專用樣式 */
-        .trash-section { background-color: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 25px; margin-top: 40px; }
+        .trash-section { background-color: #f1f5f9; border: 2px dashed #94a3b8; border-radius: 16px; padding: 25px; margin-top: 40px; }
         .trash-section.has-items { background-color: #fff5f5; border-color: #fca5a5; }
-        .trash-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 20px; }
+        .trash-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #cbd5e1; padding-bottom: 12px; margin-bottom: 20px; }
         .trash-section.has-items .trash-header { border-bottom-color: #fee2e2; }
         .trash-title { font-size: 20px; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 8px; margin: 0; }
         .trash-section.has-items .trash-title { color: #991b1b; }
@@ -74,7 +71,6 @@
         .spinner { border: 4px solid #e2e8f0; border-top: 4px solid #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* 📱 手機版 RWD 覆蓋樣式 */
         @media (max-width: 768px) {
             body { padding: 15px; }
             .header-container { flex-direction: column; align-items: flex-start; gap: 15px; }
@@ -263,7 +259,7 @@
             </div>
             <div class="modal-buttons">
                 <button class="btn" style="background-color:#cbd5e1;" onclick="closeRoomModal()">取消</button>
-                <button class="btn btn-primary" style="background-color: #10b981;" id="submitRoomBtn" onclick="submitRoom()">確認新增</button>
+                <button class="btn btn-primary" style="background-color: #10b981;" id="submitRoomBtn" onclick="submitRoom()">儲存房源</button>
             </div>
         </div>
     </div>
@@ -271,20 +267,18 @@
     <script>
         const CLOUD_API_URL = "https://script.google.com/macros/s/AKfycbw-uwKwzY6mIDtQOkC81pUj68huKnx2qZ3PKIbQtKfPycfyGpqhC4ln1Um-idpTBNrGbw/exec";
         
-        // 🔒 權限與密碼管理
         let isAdmin = false;
         let isFullView = false; 
         const ADMIN_PASSWORD = "2007"; 
         const VIEWER_PASSWORD = "5678"; 
 
-        // 核心資料字典與當前年度指引
         let myData = {}; 
         let selectedYear = "2026"; 
         let tempCustomBills = [];
         let currentFilter = 'all'; 
         let chartInstance = null;
 
-        // 初始化與舊資料相容性遷移
+        // 初始化與讀取本地暫存
         try {
             let localData = localStorage.getItem("date_driven_landlord_data");
             if (localData && localData !== "[]" && localData !== "undefined") {
@@ -298,7 +292,6 @@
         } catch (e) { console.error("本地資料讀取異常", e); }
 
         if (!myData[selectedYear]) myData[selectedYear] = [];
-        // 初始化垃圾桶核心結構 (區分社區與獨立房間)
         if (!myData["trash_bin"]) myData["trash_bin"] = [];
         if (!myData["room_trash_bin"]) myData["room_trash_bin"] = [];
         document.getElementById("yearSelect").value = selectedYear;
@@ -440,13 +433,13 @@
             filterSelect.value = currentFilter;
         }
 
-        // 雲端同步下載還原
-        if (myData[selectedYear].length === 0) {
+        // 雲端防覆蓋加載初始化機制
+        if (myData[selectedYear].length === 0 && !isAdmin) {
             document.getElementById("connection-status").innerText = "⏳ 嘗試從雲端還原資料...";
             fetch(`${CLOUD_API_URL}?t=${Date.now()}`)
                 .then(res => res.json())
                 .then(cloudJson => {
-                    if (cloudJson) {
+                    if (cloudJson && !isAdmin) { // 二次驗證，防止與管理員手動動作衝突
                         if (Array.isArray(cloudJson)) {
                             myData = {}; myData[selectedYear] = cloudJson;
                         } else { myData = cloudJson; }
@@ -456,10 +449,10 @@
                         localStorage.setItem("date_driven_landlord_data", JSON.stringify(myData));
                         renderDashboard(false, true);
                         document.getElementById("connection-status").innerText = `🟢 雲端資料同步成功 (${selectedYear})`;
-                    } else {
+                    } else if (!isAdmin) {
                         document.getElementById("connection-status").innerText = "🟢 系統就緒 (目前資料庫為空)";
                     }
-                }).catch(() => document.getElementById("connection-status").innerText = "⚠️ 雲端連線失敗 (單機模式)");
+                }).catch(() => { if(!isAdmin) document.getElementById("connection-status").innerText = "⚠️ 雲端連線失敗 (單機模式)"; });
         }
 
         function handleYearChange(year) {
@@ -628,7 +621,7 @@
             let dateStr = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
             
             activeData[gIdx].rooms[rIdx].repairs.push({ date: dateStr, name, cost });
-            renderDashboard();
+            renderDashboard(true, false);
         }
 
         function deleteRepairLog(gIdx, rIdx, repIdx) {
@@ -636,7 +629,7 @@
             if (confirm("確定要刪除這筆修繕事件紀錄嗎？")) {
                 let activeData = myData[selectedYear] || [];
                 activeData[gIdx].rooms[rIdx].repairs.splice(repIdx, 1);
-                renderDashboard();
+                renderDashboard(true, false);
             }
         }
 
@@ -699,7 +692,7 @@
             });
         }
 
-        // 主畫面渲染核心
+        // 主介面渲染
         function renderDashboard(triggerSave = true, forceRefreshDropdown = false) {
             updateFilterDropdown(forceRefreshDropdown); 
             updateAuthUI(); 
@@ -779,13 +772,6 @@
                                 
                                 room.bills.forEach((bill, bIdx) => {
                                     let displayName = bill.name;
-                                    if(bill.name.startsWith("M") && !bill.name.includes("押金")) {
-                                        let oldMIdx = parseInt(bill.name.substring(1, 3)) - 1;
-                                        if(oldMIdx >= 0 && oldMIdx < leaseMonths.length) {
-                                            displayName = leaseMonths[oldMIdx]; bill.name = displayName; 
-                                        }
-                                    }
-
                                     let isPaid = bill.paidDate && bill.paidDate.trim() !== "";
                                     let cursorStyle = isAdmin ? 'cursor: pointer;' : 'cursor: default;';
                                     let badge = `<span class="status-badge ${isPaid ? 'status-paid' : 'status-unpaid'}" style="${cursorStyle}" onclick="changePaidDate(${gIdx},${originalRoomIdx},${bIdx})">${isPaid ? bill.paidDate : '未收'}</span>`;
@@ -843,7 +829,7 @@
                 }).join("");
             }
 
-            // 🌟 垃圾桶管理區塊常駐機制 (管理員或唯讀權限解鎖即顯示)
+            // 🌟 強制常駐垃圾桶渲染模組 (只要解鎖身分就顯示，解決找不到的問題)
             if (isAdmin || isFullView) {
                 let hasGroupTrash = myData["trash_bin"] && myData["trash_bin"].length > 0;
                 let hasRoomTrash = myData["room_trash_bin"] && myData["room_trash_bin"].length > 0;
@@ -880,15 +866,15 @@
                 trashZone.innerHTML = `
                 <div class="trash-section ${!isTrashEmpty ? 'has-items' : ''}">
                     <div class="trash-header">
-                        <h2 class="trash-title">🗑️ 垃圾桶暫存區 ${isTrashEmpty ? '(空)' : '(防誤刪保護中)'}</h2>
+                        <h2 class="trash-title">🗑️ 垃圾桶暫存區管理 ${isTrashEmpty ? '(空)' : '(安全暫存保護中)'}</h2>
                         ${(isAdmin && !isTrashEmpty) ? `<button class="btn btn-danger" style="padding: 5px 12px; font-size: 12px;" onclick="clearAllTrash()">⚠️ 一鍵粉碎清空</button>` : ''}
                     </div>
                     ${isTrashEmpty ? `
-                        <div style="text-align:center; padding: 15px 0; color:#94a3b8; font-size:14px;">暫存區目前空空如也 📭 <br><small style="color:#cbd5e1;">(刪除的社區或房間皆會打包暫存在此處)</small></div>
+                        <div style="text-align:center; padding: 15px 0; color:#94a3b8; font-size:14px;">暫存區目前空空如也 📭 <br><small style="color:#94a3b8;">(不論刪除社區或單獨房間，皆會即時被打包儲存於此)</small></div>
                     ` : `
-                        <div class="trash-subsection-title">📂 已刪除的社區群組列表</div>
+                        <div class="trash-subsection-title">📂 已刪除的社區群組</div>
                         ${groupTrashHTML}
-                        <div class="trash-subsection-title" style="margin-top:15px;">🚪 已刪除的獨立房源卡片</div>
+                        <div class="trash-subsection-title" style="margin-top:15px;">微型卡片：已刪除的個別房間</div>
                         ${roomTrashHTML}
                     `}
                 </div>`;
@@ -898,7 +884,7 @@
             if(triggerSave) saveToCloud();
         }
 
-        // 🎯 拖曳重新排序邏輯
+        // 🎯 拖曳排序
         let dragSourceGroupIndex = null;
         let dragSourceRoomIndex = null;
 
@@ -939,70 +925,69 @@
             let activeData = myData[selectedYear] || [];
             let targetGroup = activeData[gIdx];
             
-            if (confirm(`⚠️ 確定要刪除社區「${targetGroup.groupName}」嗎？\n\n安全機制：刪除後，此社區內全部 ${targetGroup.rooms.length} 間房間與財務明細將完整移入垃圾桶。`)) {
+            if (confirm(`⚠️ 確定要刪除整個社區「${targetGroup.groupName}」嗎？\n\n內含的 ${targetGroup.rooms.length} 間房間財務資料將精準移入垃圾桶。`)) {
                 targetGroup.deletedFromYear = selectedYear;
                 if (!myData["trash_bin"]) myData["trash_bin"] = [];
                 myData["trash_bin"].push(targetGroup);
                 activeData.splice(gIdx, 1);
-                alert("🛒 社區已安全移至下方垃圾桶暫存區！");
                 renderDashboard(true, true);
+                saveToCloud();
             }
         }
 
-        // 🎯 刪除獨立房間邏輯 (串接垃圾桶)
+        // 🎯 修正版：刪除單一房間邏輯（確保即時連動雲端）
         function deleteRoomToTrash(gIdx, rIdx) {
             if (!checkPermission()) return;
             let activeData = myData[selectedYear] || [];
             let originalGroupName = activeData[gIdx].groupName;
             let targetRoom = activeData[gIdx].rooms[rIdx];
 
-            if (confirm(`🚪 確定要將 ${targetRoom.number} 室移至垃圾桶嗎？\n(包含其租約與事件薄皆會完整保留供備查還原)`)) {
+            if (confirm(`🚪 確定要將 ${targetRoom.number} 室移至垃圾桶嗎？\n(歷史收租紀錄與事件紀錄皆會完整封裝保留)`)) {
                 if (!myData["room_trash_bin"]) myData["room_trash_bin"] = [];
                 
-                // 封裝房間暫存包
                 myData["room_trash_bin"].push({
                     deletedFromYear: selectedYear,
                     originalGroupName: originalGroupName,
                     roomData: targetRoom
                 });
 
-                // 從現有列表中剔除
                 activeData[gIdx].rooms.splice(rIdx, 1);
-                alert(`🛒 ${targetRoom.number} 室已移入垃圾桶暫存區。`);
+                alert(`🛒 已成功將 ${targetRoom.number} 室移至下方的垃圾桶暫存區！`);
+                
                 renderDashboard(true, false);
+                saveToCloud(); // 🌟 強制啟動雲端同步表單，防止重新整理復原！
             }
         }
 
-        // 🎯 垃圾桶：徹底粉碎社區
+        // 🎯 粉碎與還原操作
         function deleteTrashItemPermanently(tIdx) {
             if (!checkPermission()) return;
-            if (confirm("🔥 警告：此操作將永久粉碎該社區及底下所有房間，無法再還原！確定繼續？")) {
+            if (confirm("🔥 警告：此操作將永久粉碎該社區，無法再還原！確定繼續？")) {
                 myData["trash_bin"].splice(tIdx, 1);
                 renderDashboard(true, false);
+                saveToCloud();
             }
         }
 
-        // 🎯 垃圾桶：徹底粉碎獨立房間
         function deleteRoomTrashPermanently(rIdx) {
             if (!checkPermission()) return;
-            if (confirm("🔥 確定要永久粉碎這間房間的所有財務資料嗎？此操作不可逆！")) {
+            if (confirm("🔥 確定要永久粉碎這間房間的所有財務資料嗎？")) {
                 myData["room_trash_bin"].splice(rIdx, 1);
                 renderDashboard(true, false);
+                saveToCloud();
             }
         }
 
-        // 🎯 垃圾桶：一鍵清空
         function clearAllTrash() {
             if (!checkPermission()) return;
-            if (confirm("💥 確定要「清空垃圾桶」嗎？這將粉碎裡面所有的社區與房間明細，完全無法回復！")) {
+            if (confirm("💥 確定要清空垃圾桶嗎？這將粉碎裡面所有的歷史紀錄！")) {
                 myData["trash_bin"] = [];
                 myData["room_trash_bin"] = [];
-                alert("垃圾桶已完全清空。");
                 renderDashboard(true, false);
+                saveToCloud();
             }
         }
 
-        // 🎯 垃圾桶：還原社區
         function restoreGroupFromTrash(tIdx) {
             if (!checkPermission()) return;
             let restoredGroup = myData["trash_bin"].splice(tIdx, 1)[0];
@@ -1018,9 +1003,9 @@
             selectedYear = targetYear;
             document.getElementById("yearSelect").value = selectedYear;
             renderDashboard(true, true);
+            saveToCloud();
         }
 
-        // 🎯 垃圾桶：還原獨立房間 (具備智慧原社區配對與重建功能)
         function restoreRoomFromTrash(rIdx) {
             if (!checkPermission()) return;
             let package = myData["room_trash_bin"].splice(rIdx, 1)[0];
@@ -1029,22 +1014,19 @@
             if (!myData[targetYear]) myData[targetYear] = [];
             let activeData = myData[targetYear];
 
-            // 尋找原社區是否存在
             let groupObj = activeData.find(g => g.groupName === package.originalGroupName);
-            
             if (!groupObj) {
-                // 如果原社區已經不見了，自動重建社區
                 groupObj = { groupName: package.originalGroupName, rooms: [] };
                 activeData.push(groupObj);
             }
 
-            // 塞回社區內
             groupObj.rooms.push(package.roomData);
-            alert(`↩️ 成功將 ${package.roomData.number} 室 還原至 【${targetYear}年 - ${package.originalGroupName}】中！`);
+            alert(`↩️ 成功將 ${package.roomData.number} 室 還原至 【${targetYear}年 - ${package.originalGroupName}】！`);
             
             selectedYear = targetYear;
             document.getElementById("yearSelect").value = selectedYear;
             renderDashboard(true, true);
+            saveToCloud();
         }
 
         function changePaidDate(gIdx, rIdx, bIdx) {
@@ -1087,7 +1069,7 @@
         function openRoomModal() {
             if (!checkPermission()) return;
             let activeData = myData[selectedYear] || [];
-            if (!activeData.length) return alert("請先建立社區！");
+            if (!activeData.length) return alert("請先建立社區群組！");
             document.getElementById("selectGroup").innerHTML = activeData.map((g, i) => `<option value="${i}">${g.groupName}</option>`).join("");
             document.getElementById("roomModalTitle").innerText = "🚪 新增房源與財務設定";
             document.getElementById("submitRoomBtn").innerText = "確認新增";
@@ -1107,7 +1089,7 @@
             if (!checkPermission()) return;
             let room = myData[selectedYear][gIdx].rooms[rIdx];
             openRoomModal(); 
-            document.getElementById("roomModalTitle").innerText = `✏️ 編輯 🚪 ${room.number} 室 房源財務`;
+            document.getElementById("roomModalTitle").innerText = `✏️ 編輯 🚪 ${room.number} 室 房源`;
             document.getElementById("submitRoomBtn").innerText = "儲存修改";
             document.getElementById("editGroupIndex").value = gIdx; document.getElementById("editRoomIndex").value = rIdx;
             document.getElementById("customItemBoxSection").style.opacity = "0.5";
@@ -1191,6 +1173,7 @@
             closeRoomModal();
         }
 
+        // 預設初次渲染
         renderDashboard(false, true);
     </script>
 </body>
