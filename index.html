@@ -32,13 +32,14 @@
         .room-number { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
         .info-text { font-size: 13px; color: #64748b; margin-bottom: 6px; }
         .memo-badge { background-color: #fffbeb; color: #b45309; border: 1px dashed #fde68a; padding: 6px 10px; border-radius: 6px; font-size: 12px; margin-top: 8px; margin-bottom: 4px; line-height: 1.4; word-break: break-all; }
-        
         .ledger-box { background-color: #ffffff; border-radius: 8px; padding: 12px; margin-top: 15px; border: 1px solid #edf2f7; }
-        .ledger-title { font-size: 13px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        .bill-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
-        .bill-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .ledger-title { font-size: 12px; font-weight: bold; color: #64748b; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .bill-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .bill-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; background: #f8fafc; padding: 6px; border-radius: 6px; }
+        .extra-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; background: #eff6ff; padding: 7px 10px; border-radius: 6px; border: 1px solid #bfdbfe; color: #1e40af; }
+        .memo-text { font-size: 11px; color: #64748b; padding-left: 20px; line-height: 1.4; margin: 0 0 10px 0; }
         
-        .status-badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; user-select: none; text-align: center; min-width: 65px; display: inline-block; cursor: pointer; }
+        .status-badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; user-select: none; text-align: center; min-width: 45px; display: inline-block; }
         .status-paid { background-color: #dcfce7; color: #15803d; }
         .status-unpaid { background-color: #fee2e2; color: #b91c1c; }
 
@@ -53,14 +54,11 @@
         .custom-input-group { display: flex; gap: 8px; margin-bottom: 8px; }
         .custom-list { font-size: 12px; color: #475569; margin-top: 5px; padding-left: 20px; margin-bottom: 0; }
         .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
-        
         #sync-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); display: none; justify-content: center; align-items: center; font-size: 22px; font-weight: bold; color: #2563eb; z-index: 9999; flex-direction: column; gap: 15px; }
         .spinner { border: 4px solid #e2e8f0; border-top: 4px solid #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* 修繕列表樣式 */
-        .repair-item { font-size: 12px; display: flex; justify-content: space-between; align-items: center; background: #fff1f2; color: #9f1239; border: 1px solid #fecdd3; padding: 6px; border-radius: 6px; margin-top: 4px; }
-
+        /* 📱 手機版 RWD 覆蓋樣式 */
         @media (max-width: 768px) {
             body { padding: 15px; }
             .header-container { flex-direction: column; align-items: flex-start; gap: 15px; }
@@ -108,7 +106,7 @@
     </div>
     
     <div id="topFinancialGrid" class="top-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin-bottom: 25px;">
-        <div id="dashboard-zone" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;"></div>
+        <div id="dashboard-zone" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;"></div >
         <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; height: 230px; box-sizing: border-box;">
             <div style="font-size: 13px; color: #64748b; font-weight: 600; margin-bottom: 10px;">📊 年度歷史實收租金趨勢</div>
             <div style="height: 160px; position: relative;">
@@ -142,7 +140,8 @@
                     <option value="all">1. 全部房源</option>
                     <option value="vacant">2. 有房間但沒租約 (待租中房源)</option>
                     <option value="unpaid">3. 未繳租金</option>
-                    <optgroup label="4. 房屋群組 (單獨社區顯示)" id="dropdownGroupSection"></optgroup>
+                    <optgroup label="4. 房屋群組 (單獨社區顯示)" id="dropdownGroupSection">
+                    </optgroup>
                 </select>
             </div>
         </div>
@@ -184,7 +183,7 @@
             <div class="form-row-grid">
                 <div class="form-group">
                     <label>租客姓名</label>
-                    <input type="text" id="inputTenant" placeholder="例如: 林小華">
+                    <input type="text" id="inputTenant" placeholder="Example: 林小華">
                 </div>
                 <div class="form-group">
                     <label>租合約期</label>
@@ -255,24 +254,26 @@
     <script>
         const CLOUD_API_URL = "https://script.google.com/macros/s/AKfycbw-uwKwzY6mIDtQOkC81pUj68huKnx2qZ3PKIbQtKfPycfyGpqhC4ln1Um-idpTBNrGbw/exec";
         
+        // 🔒 權限與密碼管理
         let isAdmin = false;
         let isFullView = false; 
         const ADMIN_PASSWORD = "2007"; 
         const VIEWER_PASSWORD = "5678"; 
 
+        // 核心資料字典與當前年度指引
         let myData = {}; 
         let selectedYear = "2026"; 
         let tempCustomBills = [];
-        let currentFilter = 'all'; 
+        let currentFilter = 'all'; // 預設顯示全部房源
         let chartInstance = null;
 
+        // 初始化與老資料相容性遷移邏輯
         try {
             let localData = localStorage.getItem("date_driven_landlord_data");
             if (localData && localData !== "[]" && localData !== "undefined") {
                 let parsed = JSON.parse(localData);
                 if (Array.isArray(parsed)) {
-                    myData = {};
-                    myData[selectedYear] = parsed;
+                    myData = {}; myData[selectedYear] = parsed;
                 } else {
                     myData = parsed;
                 }
@@ -282,6 +283,7 @@
         if (!myData[selectedYear]) myData[selectedYear] = [];
         document.getElementById("yearSelect").value = selectedYear;
 
+        // 核心權限攔截器
         function checkPermission() {
             if (!isAdmin) {
                 alert("🔒 目前為「唯讀模式」，不允許執行此操作。\n若需使用，請先點擊網頁右上角的「管理員登入」。");
@@ -290,6 +292,7 @@
             return true;
         }
 
+        // 開關完整閱覽模式
         function toggleViewMode() {
             if (isFullView) {
                 isFullView = false;
@@ -306,6 +309,7 @@
             renderDashboard(false);
         }
 
+        // 開關管理員登入模式
         function toggleAdminMode() {
             if (isAdmin) {
                 isAdmin = false;
@@ -324,6 +328,7 @@
             renderDashboard(false);
         }
 
+        // 智慧控管 UI 顯示整合權限機制
         function updateAuthUI() {
             const adminBtn = document.getElementById("adminBtn");
             const viewerBtn = document.getElementById("viewerBtn");
@@ -369,23 +374,29 @@
             }
         }
 
+        // 核心輔助工具：解析合約並吐出 12 個連續的 YYYY/MM 字串
         function generateLeaseMonths(periodStr) {
             let months = [];
             let defaultYear = parseInt(selectedYear) || new Date().getFullYear();
+            
+            // 預設防呆回傳：若沒租約，回傳當前選定年度的 1~12 月
             let fallback = [];
             for(let i=1; i<=12; i++) {
                 fallback.push(`${defaultYear}/${String(i).padStart(2, '0')}`);
             }
 
             if (!periodStr || !periodStr.includes("~")) return fallback;
+            
             try {
                 let parts = periodStr.split("~");
-                let startPart = parts[0].trim();
+                let startPart = parts[0].trim(); // e.g. "2026/06"
+                
                 let startYM = startPart.split("/");
                 let sYear = parseInt(startYM[0]);
                 let sMonth = parseInt(startYM[1]);
                 
                 if(isNaN(sYear) || isNaN(sMonth)) return fallback;
+
                 for(let i = 0; i < 12; i++) {
                     let currentMonth = sMonth + i;
                     let currentYear = sYear;
@@ -396,15 +407,19 @@
                     months.push(`${currentYear}/${String(currentMonth).padStart(2, '0')}`);
                 }
                 return months;
-            } catch(e) { return fallback; }
+            } catch(e) {
+                return fallback;
+            }
         }
 
+        // 動態刷新整合篩選選單項目
         function updateFilterDropdown(forceRefreshHTML = false) {
             const filterSelect = document.getElementById("filterSelect");
             const groupSection = document.getElementById("dropdownGroupSection");
             if (!filterSelect || !groupSection) return;
             
             let activeData = myData[selectedYear] || [];
+            
             if (forceRefreshHTML || groupSection.children.length !== activeData.length) {
                 let html = "";
                 activeData.forEach((g, idx) => {
@@ -412,13 +427,17 @@
                 });
                 groupSection.innerHTML = html;
             }
+            
             if (currentFilter.startsWith('group_')) {
                 let idx = parseInt(currentFilter.replace('group_', ''));
-                if (isNaN(idx) || idx >= activeData.length) { currentFilter = 'all'; }
+                if (isNaN(idx) || idx >= activeData.length) {
+                    currentFilter = 'all';
+                }
             }
             filterSelect.value = currentFilter;
         }
 
+        // 雲端同步下載還原邏輯
         if (myData[selectedYear].length === 0) {
             document.getElementById("connection-status").innerText = "⏳ 嘗試從雲端還原資料...";
             fetch(`${CLOUD_API_URL}?t=${Date.now()}`)
@@ -427,7 +446,9 @@
                     if (cloudJson) {
                         if (Array.isArray(cloudJson)) {
                             myData = {}; myData[selectedYear] = cloudJson;
-                        } else { myData = cloudJson; }
+                        } else {
+                            myData = cloudJson;
+                        }
                         if (!myData[selectedYear]) myData[selectedYear] = [];
                         localStorage.setItem("date_driven_landlord_data", JSON.stringify(myData));
                         renderDashboard(false, true);
@@ -438,6 +459,7 @@
                 }).catch(() => document.getElementById("connection-status").innerText = "⚠️ 雲端連線失敗 (單機模式)");
         }
 
+        // 年度切換
         function handleYearChange(year) {
             selectedYear = year;
             if (!myData[selectedYear] || myData[selectedYear].length === 0) {
@@ -445,10 +467,14 @@
                 if (myData[prevYear] && myData[prevYear].length > 0 && isAdmin) {
                     if (confirm(`📅 偵測到 ${selectedYear} 年尚未建立帳本。\n\n是否要從前一年 (${prevYear} 年) 自動複製結構？`)) {
                         myData[selectedYear] = cloneStructureForNewYear(myData[prevYear]);
-                    } else { myData[selectedYear] = []; }
-                } else { myData[selectedYear] = []; }
+                    } else {
+                        myData[selectedYear] = [];
+                    }
+                } else {
+                    myData[selectedYear] = [];
+                }
             }
-            currentFilter = 'all';
+            currentFilter = 'all'; 
             document.getElementById("connection-status").innerText = `🟢 目前顯示：${selectedYear} 年度帳本`;
             renderDashboard(true, true);
         }
@@ -484,13 +510,17 @@
                     if (cloudJson) {
                         if (Array.isArray(cloudJson)) {
                             myData = {}; myData[selectedYear] = cloudJson;
-                        } else { myData = cloudJson; }
+                        } else {
+                            myData = cloudJson;
+                        }
                         if (!myData[selectedYear]) myData[selectedYear] = [];
                         localStorage.setItem("date_driven_landlord_data", JSON.stringify(myData));
                         currentFilter = 'all';
                         renderDashboard(false, true);
                         alert("✅ 雲端同步完成！");
-                    } else { alert("⚠️ 攔截警告：雲端回傳資料異常。"); }
+                    } else { 
+                        alert("⚠️ 攔截警告：雲端回傳資料異常。"); 
+                    }
                 }).catch(() => alert("❌ 下載失敗。"))
                 .finally(() => document.getElementById("sync-overlay").style.display = "none");
         }
@@ -508,9 +538,10 @@
         }
 
         function saveToCloud() {
-            if (!isAdmin) return;
+            if (!isAdmin) return; 
             let overlay = document.getElementById("sync-overlay");
             if(overlay) overlay.style.display = "flex";
+            
             let currentJson = JSON.stringify(myData);
             localStorage.setItem("date_driven_landlord_data", currentJson);
             document.getElementById("formJsonField").value = currentJson;
@@ -529,11 +560,11 @@
             if (!periodStr || !periodStr.includes("~")) return { warning: false, text: "" };
             try {
                 let parts = periodStr.split("~");
-                let endPart = parts[1].trim();
+                let endPart = parts[1].trim(); 
                 let endYM = endPart.split("/");
                 let endYear = parseInt(endYM[0]);
                 let endMonth = parseInt(endYM[1]) - 1;
-                let endDate = new Date(endYear, endMonth + 1, 0);
+                let endDate = new Date(endYear, endMonth + 1, 0); 
                 let today = new Date();
                 let timeDiff = endDate.getTime() - today.getTime();
                 let daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
@@ -541,76 +572,6 @@
                 if (daysDiff <= 45) return { warning: true, text: `⚠️ 租約剩 ${daysDiff} 天到期` };
             } catch(e) {}
             return { warning: false, text: "" };
-        }
-
-        function renewLeaseOneClick(gIdx, rIdx) {
-            if (!checkPermission()) return;
-            let activeData = myData[selectedYear] || [];
-            let oldRoom = activeData[gIdx].rooms[rIdx];
-            
-            let nextYearStr = String(Number(selectedYear) + 1);
-            if (!confirm(`🔄 確定要啟動一鍵續約功能嗎？\n\n系統將會把房源【${oldRoom.number} 室 - ${oldRoom.tenant || '無租客'}】完整複製移交至下一年 (${nextYearStr} 年) 的相同社區中。`)) return;
-
-            let nextPeriod = `${nextYearStr}/06 ~ ${String(Number(nextYearStr)+1)}/05`;
-            if (oldRoom.rentPeriod && oldRoom.rentPeriod.includes("~")) {
-                try {
-                    let p = oldRoom.rentPeriod.split("~");
-                    let startY = parseInt(p[0].trim().split("/")[0]) + 1;
-                    let startM = p[0].trim().split("/")[1];
-                    let endY = parseInt(p[1].trim().split("/")[0]) + 1;
-                    let endM = p[1].trim().split("/")[1];
-                    nextPeriod = `${startY}/${startM} ~ ${endY}/${endM}`;
-                } catch(e){}
-            }
-
-            if (!myData[nextYearStr]) myData[nextYearStr] = [];
-            
-            let targetGroup = myData[nextYearStr].find(g => g.groupName === activeData[gIdx].groupName);
-            if (!targetGroup) {
-                targetGroup = { groupName: activeData[gIdx].groupName, rooms: [] };
-                myData[nextYearStr].push(targetGroup);
-            }
-
-            let monthlyTotal = Number(oldRoom.rent||0) + Number(oldRoom.manage||0) + Number(oldRoom.parking||0) + Number(oldRoom.pet||0) + Number(oldRoom.customTotal||0);
-            let newBills = [];
-            let leaseMonths = generateLeaseMonths(nextPeriod);
-            for(let i=0; i<12; i++){
-                newBills.push({ name: leaseMonths[i], amount: monthlyTotal, paidDate: "" });
-            }
-
-            let newRoomObj = {
-                number: oldRoom.number, tenant: oldRoom.tenant, rentPeriod: nextPeriod, memo: oldRoom.memo,
-                rent: oldRoom.rent, deposit: oldRoom.deposit, manage: oldRoom.manage, parking: oldRoom.parking, pet: oldRoom.pet,
-                customTotal: oldRoom.customTotal, details: [...(oldRoom.details || [])], bills: newBills, repairs: []
-            };
-
-            targetGroup.rooms = targetGroup.rooms.filter(r => r.number !== oldRoom.number);
-            targetGroup.rooms.push(newRoomObj);
-
-            alert(`✅ 續約成功！已將該房源建立至 ${nextYearStr} 年度帳本中。\n\n您現在切換至 ${nextYearStr} 年即可查看新合約明細！`);
-            saveToCloud();
-            renderDashboard(true, false);
-        }
-
-        function editBillDetail(gIdx, rIdx, bIdx) {
-            if (!checkPermission()) return;
-            let activeData = myData[selectedYear] || [];
-            let bill = activeData[gIdx].rooms[rIdx].bills[bIdx];
-            
-            let newAmount = prompt(`✍️ 修改 [${bill.name}] 的帳單應繳金額：`, bill.amount);
-            if (newAmount === null) return;
-            newAmount = Number(newAmount);
-            if (isNaN(newAmount)) return alert("請輸入有效的數字！");
-
-            let newDate = prompt(`✍️ 修改 [${bill.name}] 的入帳收租日期 (格式範例: 2026/06/10，若未繳請留空)：`, bill.paidDate || "");
-            if (newDate === null) return;
-
-            bill.amount = newAmount;
-            bill.paidDate = newDate.trim();
-
-            alert("✅ 帳單修改成功！");
-            saveToCloud();
-            renderDashboard(true, false);
         }
 
         function calculateUtility() {
@@ -625,13 +586,12 @@
             let total = degrees * rate;
             tempCustomBills.push({ name: `${name}(${degrees}度,${pNum}→${cNum})`, amount: total });
             document.getElementById("customListVisual").innerHTML = tempCustomBills.map(item => `<li>${item.name}: (每月 +${item.amount.toLocaleString()})</li>`).join("");
-            document.getElementById("calcPrev").value = "";
-            document.getElementById("calcCurr").value = "";
+            document.getElementById("calcPrev").value = ""; document.getElementById("calcCurr").value = "";
         }
 
         function handleFilterChange(val) {
             currentFilter = val;
-            renderDashboard(false, false);
+            renderDashboard(false, false); 
         }
 
         function exportToCSV() {
@@ -640,6 +600,7 @@
             let today = new Date();
             let curYM = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}`;
             let csvContent = `\ufeff年度,社區/街道,房號,租客,租約期,本月 (${curYM}) 應收金額,本月實收狀態,房源備註\n`;
+            
             activeData.forEach(g => {
                 g.rooms.forEach(r => {
                     let mBill = r.bills.find(b => b.name === curYM);
@@ -648,6 +609,7 @@
                     csvContent += `"${selectedYear}","${g.groupName}","${r.number}","${r.tenant}","${r.rentPeriod}","$${amt.toLocaleString()}","${status}","${(r.memo || '').replace(/"/g, '""')}"\n`;
                 });
             });
+            
             let blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
             let a = document.createElement("a");
             a.href = URL.createObjectURL(blob);
@@ -668,11 +630,9 @@
             if (!activeData[gIdx].rooms[rIdx].repairs) activeData[gIdx].rooms[rIdx].repairs = [];
             let today = new Date();
             let dateStr = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
-            activeData[gIdx].rooms[rIdx].repairs.push({ date: dateStr, name, cost });
             
-            alert("✅ 修繕紀錄新增成功！");
-            saveToCloud();
-            renderDashboard(true, false);
+            activeData[gIdx].rooms[rIdx].repairs.push({ date: dateStr, name, cost });
+            renderDashboard();
         }
 
         function deleteRepairLog(gIdx, rIdx, repIdx) {
@@ -680,415 +640,55 @@
             if (confirm("確定要刪除這筆修繕事件紀錄嗎？")) {
                 let activeData = myData[selectedYear] || [];
                 activeData[gIdx].rooms[rIdx].repairs.splice(repIdx, 1);
-                saveToCloud();
-                renderDashboard(true, false);
+                renderDashboard();
             }
         }
 
-        function toggleBillPaidStatus(gIdx, rIdx, bIdx) {
-            if (!checkPermission()) return;
-            let activeData = myData[selectedYear] || [];
-            let bill = activeData[gIdx].rooms[rIdx].bills[bIdx];
-            if (bill.paidDate) {
-                bill.paidDate = "";
-            } else {
-                let today = new Date();
-                bill.paidDate = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
-            }
-            saveToCloud();
-            renderDashboard(true, false);
-        }
-
-        function openGroupModal(idx = null) {
-            if (!checkPermission()) return;
-            if (idx !== null) {
-                document.getElementById("groupModalTitle").innerText = "📝 編輯社區/街道名稱";
-                document.getElementById("editGroupIndexFlag").value = idx;
-                document.getElementById("inputGroupName").value = myData[selectedYear][idx].groupName;
-            } else {
-                document.getElementById("groupModalTitle").innerText = "📍 新增社區群組";
-                document.getElementById("editGroupIndexFlag").value = "";
-                document.getElementById("inputGroupName").value = "";
-            }
-            document.getElementById("groupModal").style.display = "flex";
-        }
-        function closeGroupModal() { document.getElementById("groupModal").style.display = "none"; }
-
-        function submitGroup() {
-            let name = document.getElementById("inputGroupName").value.trim();
-            let idxFlag = document.getElementById("editGroupIndexFlag").value;
-            if (!name) return alert("名稱不可為空！");
-            if (!myData[selectedYear]) myData[selectedYear] = [];
-            
-            if (idxFlag !== "") {
-                myData[selectedYear][idxFlag].groupName = name;
-            } else {
-                myData[selectedYear].push({ groupName: name, rooms: [] });
-            }
-            closeGroupModal();
-            saveToCloud();
-            renderDashboard(true, true);
-        }
-
-        function deleteGroup(idx) {
-            if (!checkPermission()) return;
-            if (confirm(`⚠️ 確定要刪除整個【${myData[selectedYear][idx].groupName}】社區嗎？\n此動作將連同內部所有房源、歷史帳單全部抹除！`)) {
-                myData[selectedYear].splice(idx, 1);
-                saveToCloud();
-                renderDashboard(true, true);
-            }
-        }
-
-        function openRoomModal(gIdx = null, rIdx = null) {
-            if (!checkPermission()) return;
-            let groupSelect = document.getElementById("selectGroup");
-            groupSelect.innerHTML = myData[selectedYear].map((g, i) => `<option value="${i}">${g.groupName}</option>`).join("");
-            tempCustomBills = [];
-            document.getElementById("customListVisual").innerHTML = "";
-
-            if (gIdx !== null && rIdx !== null) {
-                document.getElementById("roomModalTitle").innerText = "🚪 編輯房源合約與財務參數";
-                let rm = myData[selectedYear][gIdx].rooms[rIdx];
-                document.getElementById("editGroupIndex").value = gIdx;
-                document.getElementById("editRoomIndex").value = rIdx;
-                groupSelect.value = gIdx;
-                document.getElementById("inputRoomNumber").value = rm.number;
-                document.getElementById("inputTenant").value = rm.tenant || "";
-                document.getElementById("inputPeriod").value = rm.rentPeriod || "";
-                document.getElementById("inputMemo").value = rm.memo || "";
-                document.getElementById("inputRent").value = rm.rent || 0;
-                document.getElementById("inputDeposit").value = rm.deposit || 0;
-                document.getElementById("inputManage").value = rm.manage || 0;
-                document.getElementById("inputParking").value = rm.parking || 0;
-                document.getElementById("inputPet").value = rm.pet || 0;
-                tempCustomBills = rm.details ? [...rm.details] : [];
-                document.getElementById("customListVisual").innerHTML = tempCustomBills.map(item => `<li>${item.name}: (每月 +${item.amount.toLocaleString()})</li>`).join("");
-            } else {
-                document.getElementById("roomModalTitle").innerText = "🚪 新增房源與財務設定";
-                document.getElementById("editGroupIndex").value = "";
-                document.getElementById("editRoomIndex").value = "";
-                document.getElementById("inputRoomNumber").value = "";
-                document.getElementById("inputTenant").value = "";
-                document.getElementById("inputPeriod").value = "2026/06 ~ 2027/05";
-                document.getElementById("inputMemo").value = "";
-                document.getElementById("inputRent").value = "12000";
-                document.getElementById("inputDeposit").value = "24000";
-                document.getElementById("inputManage").value = "0";
-                document.getElementById("inputParking").value = "0";
-                document.getElementById("inputPet").value = "0";
-            }
-            document.getElementById("roomModal").style.display = "flex";
-        }
-        function closeRoomModal() { document.getElementById("roomModal").style.display = "none"; }
-
-        function addCustomBillItem() {
-            let name = document.getElementById("customName").value.trim();
-            let amt = Number(document.getElementById("customAmount").value);
-            if (!name || !amt) return alert("請填寫項目名稱與完整金額！");
-            tempCustomBills.push({ name, amount: amt });
-            document.getElementById("customListVisual").innerHTML = tempCustomBills.map(item => `<li>${item.name}: (每月 +${item.amount.toLocaleString()})</li>`).join("");
-            document.getElementById("customName").value = "";
-            document.getElementById("customAmount").value = "";
-        }
-
-        function submitRoom() {
-            let gIdx = document.getElementById("selectGroup").value;
-            let num = document.getElementById("inputRoomNumber").value.trim();
-            let tenant = document.getElementById("inputTenant").value.trim();
-            let period = document.getElementById("inputPeriod").value.trim();
-            let memo = document.getElementById("inputMemo").value.trim();
-            let rent = Number(document.getElementById("inputRent").value) || 0;
-            let deposit = Number(document.getElementById("inputDeposit").value) || 0;
-            let manage = Number(document.getElementById("inputManage").value) || 0;
-            let parking = Number(document.getElementById("inputParking").value) || 0;
-            let pet = Number(document.getElementById("inputPet").value) || 0;
-
-            if (!num) return alert("房間號碼為必填欄位！");
-            let isEdit = document.getElementById("editRoomIndex").value !== "";
-            let oldGIdx = document.getElementById("editGroupIndex").value;
-            let oldRIdx = document.getElementById("editRoomIndex").value;
-
-            let customTotal = tempCustomBills.reduce((acc, cur) => acc + cur.amount, 0);
-            let details = [...tempCustomBills];
-            let monthlyTotal = rent + manage + parking + pet + customTotal;
-
-            let bills = [];
-            if (isEdit) {
-                bills = [...myData[selectedYear][oldGIdx].rooms[oldRIdx].bills];
-                // 如果修改了月總租金，同步更新未繳帳單的金額
-                bills.forEach(b => {
-                    if(!b.paidDate) b.amount = monthlyTotal;
-                });
-            } else {
-                let leaseMonths = generateLeaseMonths(period);
-                for (let i = 0; i < 12; i++) {
-                    bills.push({ name: leaseMonths[i], amount: monthlyTotal, paidDate: "" });
-                }
-            }
-
-            let repairs = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].repairs || []) : [];
-            let roomObj = { number: num, tenant, rentPeriod: period, memo, rent, deposit, manage, parking, pet, customTotal, details, bills, repairs };
-
-            if (isEdit) {
-                if (oldGIdx != gIdx) {
-                    myData[selectedYear][oldGIdx].rooms.splice(oldRIdx, 1);
-                    myData[selectedYear][gIdx].rooms.push(roomObj);
-                } else {
-                    myData[selectedYear][gIdx].rooms[oldRIdx] = roomObj;
-                }
-            } else {
-                myData[selectedYear][gIdx].rooms.push(roomObj);
-            }
-
-            closeRoomModal();
-            saveToCloud();
-            renderDashboard(true, false);
-        }
-
-        function deleteRoom(gIdx, rIdx) {
-            if (!checkPermission()) return;
-            if (confirm(`確定要刪除房源 [${myData[selectedYear][gIdx].rooms[rIdx].number}] 嗎？`)) {
-                myData[selectedYear][gIdx].rooms.splice(rIdx, 1);
-                saveToCloud();
-                renderDashboard(true, false);
-            }
-        }
-
-        // ==========================================
-        // 核心渲染函式：儀表板與卡片渲染
-        // ==========================================
-        function renderDashboard(triggerCloudSave = true, forceRefreshDropdown = false) {
-            updateAuthUI();
-            updateFilterDropdown(forceRefreshDropdown);
-
-            let activeData = myData[selectedYear] || [];
-            
-            let todayObj = new Date();
-            let currentYM = `${todayObj.getFullYear()}/${String(todayObj.getMonth() + 1).padStart(2, '0')}`;
-
-            let totalRentExpected = 0;
-            let totalRentCollected = 0;
-            let uncollectedCount = 0;
-
-            let zone = document.getElementById("group-zone");
-            if (!zone) return;
-            zone.innerHTML = "";
-
-            activeData.forEach((group, gIdx) => {
-                if (currentFilter.startsWith('group_')) {
-                    let fIdx = parseInt(currentFilter.replace('group_', ''));
-                    if (fIdx !== gIdx) return;
-                }
-
-                let groupHtml = `
-                    <div class="group-section">
-                        <div class="group-header">
-                            <h2 class="group-title">📍 ${group.groupName} 
-                                <button class="group-edit-btn" style="display: ${isAdmin ? 'inline-block' : 'none'};" onclick="openGroupModal(${gIdx})">修改名稱</button>
-                                <button class="group-edit-btn" style="display: ${isAdmin ? 'inline-block' : 'none'}; color:#ef4444;" onclick="deleteGroup(${gIdx})">刪除社區</button>
-                            </h2>
-                        </div>
-                        <div class="card-container">
-                `;
-
-                let roomCardsCount = 0;
-
-                group.rooms.forEach((room, rIdx) => {
-                    let isVacant = (!room.tenant || room.tenant.trim() === "");
-                    
-                    if (!isAdmin && !isFullView) {
-                        if (!isVacant) return; 
-                    }
-
-                    if (currentFilter === 'vacant' && !isVacant) return;
-
-                    let thisMonthBill = room.bills ? room.bills.find(b => b.name === currentYM) : null;
-                    let billAmount = thisMonthBill ? Number(thisMonthBill.amount) : (Number(room.rent||0) + Number(room.manage||0) + Number(room.parking||0) + Number(room.pet||0) + Number(room.customTotal||0));
-                    if (isNaN(billAmount)) billAmount = 0;
-
-                    let isPaid = (thisMonthBill && thisMonthBill.paidDate && thisMonthBill.paidDate.trim() !== "");
-
-                    if (currentFilter === 'unpaid' && (isVacant || isPaid)) return;
-
-                    roomCardsCount++;
-
-                    if (!isVacant) {
-                        totalRentExpected += billAmount;
-                        if (isPaid) {
-                            totalRentCollected += billAmount;
-                        } else {
-                            uncollectedCount++;
-                        }
-                    }
-
-                    let expiry = checkLeaseExpiry(room.rentPeriod);
-                    let cardClass = expiry.warning ? "room-card expiry-warning" : "room-card";
-
-                    let billRowsHtml = "";
-                    if (room.bills && room.bills.length > 0) {
-                        room.bills.forEach((b, bIdx) => {
-                            let bAmt = Number(b.amount) || 0;
-                            let statusClass = b.paidDate ? "status-badge status-paid" : "status-badge status-unpaid";
-                            let statusTxt = b.paidDate ? `已入帳(${b.paidDate.substring(5)})` : "未入帳";
-                            
-                            let highlightStyle = (b.name === currentYM) ? 'style="background: #fef08a; border: 1px solid #facc15;"' : '';
-                            
-                            billRowsHtml += `
-                                <div class="bill-row" ${highlightStyle}>
-                                    <span style="font-weight:600; color:#2563eb; cursor:pointer;" onclick="editBillDetail(${gIdx}, ${rIdx}, ${bIdx})" title="點擊修改金額與日期">📅 ${b.name}</span>
-                                    <span style="color:#0f172a; font-weight:bold;">$${bAmt.toLocaleString()}</span>
-                                    <span class="${statusClass}" onclick="toggleBillPaidStatus(${gIdx},${rIdx},${bIdx})">${statusTxt}</span>
-                                </div>
-                            `;
-                        });
-                    } else {
-                        billRowsHtml = `<div style="font-size:12px; color:#94a3b8; text-align:center;">尚未生成合約帳單</div>`;
-                    }
-
-                    let repairRowsHtml = "";
-                    if (room.repairs && room.repairs.length > 0) {
-                        room.repairs.forEach((rep, repIdx) => {
-                            let rCost = Number(rep.cost) || 0;
-                            repairRowsHtml += `
-                                <div class="repair-item">
-                                    <span>🛠️ ${rep.date} - ${rep.name}</span>
-                                    <span style="font-weight:bold;">$${rCost.toLocaleString()} 
-                                        <span style="color:#ef4444; cursor:pointer; margin-left:6px;" onclick="deleteRepairLog(${gIdx},${rIdx},${repIdx})">❌</span>
-                                    </span>
-                                </div>
-                            `;
-                        });
-                    } else {
-                        repairRowsHtml = `<div style="font-size:11px; color:#94a3b8; text-align:center; padding:4px;">暫無維修事件紀錄</div>`;
-                    }
-
-                    let actionRow = "";
-                    if (room.tenant) {
-                        actionRow += `<button class="btn" style="background-color:#eff6ff; color:#2563eb; width:100%; font-size:12px; padding:6px; margin-top:10px; border:1px solid #bfdbfe;" onclick="copyLineMessage('${room.tenant}','${room.number}','${currentYM}租金',${billAmount})">💬 複製 Line 催繳通知</button>`;
-                    }
-
-                    let renewalBarHTML = "";
-                    if (expiry.warning && isAdmin) {
-                        renewalBarHTML = `
-                            <div style="background:#fff7ed; border:1px dashed #ea580c; border-radius:8px; padding:8px; margin-top:10px; text-align:center;">
-                                <span style="font-size:12px; color:#ea580c; font-weight:bold;">租約即將到期！</span>
-                                <button class="btn" style="background-color:#ea580c; color:white; font-size:11px; padding:3px 8px; margin-top:4px; border-radius:4px;" onclick="renewLeaseOneClick(${gIdx}, ${rIdx})">🔄 一鍵複製結構續約下一年</button>
-                            </div>
-                        `;
-                    }
-
-                    groupHtml += `
-                        <div class="${cardClass}">
-                            <div class="card-actions" style="display: ${isAdmin ? 'flex' : 'none'};">
-                                <button class="action-btn edit-btn" onclick="openRoomModal(${gIdx}, ${rIdx})">✏️</button>
-                                <button class="action-btn delete-btn" onclick="deleteRoom(${gIdx}, ${rIdx})">🗑️</button>
-                            </div>
-                            <div class="room-number">🚪 ${room.number} 室</div>
-                            <div class="info-text">👤 租客姓名：<span style="color:#0f172a; font-weight:700;">${room.tenant || '❌ 待租中 (暫無合約)'}</span></div>
-                            <div class="info-text">📆 合約租期：${room.rentPeriod ? `<span style="color:#2563eb; font-weight:600;">${room.rentPeriod}</span>` : '無'}</div>
-                            ${expiry.text ? `<div class="expiry-badge">${expiry.text}</div>` : ''}
-                            ${room.memo ? `<div class="memo-badge">📝 備註：${room.memo}</div>` : ''}
-                            
-                            <div class="ledger-box" style="display: ${(isAdmin || isFullView) ? 'block' : 'none'};">
-                                <div class="ledger-title" style="cursor:pointer; user-select:none; color:#2563eb;" onclick="document.getElementById('bill_drawer_${gIdx}_${rIdx}').style.display = document.getElementById('bill_drawer_${gIdx}_${rIdx}').style.display === 'none' ? 'block' : 'none'">
-                                    <span>📅 展開查看 12個月歷史合約帳單</span>
-                                    <span>🔽</span>
-                                </div>
-                                <div id="bill_drawer_${gIdx}_${rIdx}" style="display:none; margin-top:10px;">
-                                    <div style="font-size:11px; color:#64748b; margin-bottom:6px;">(提示：點月份名稱可改金額與日期)</div>
-                                    <div class="bill-grid">${billRowsHtml}</div>
-                                </div>
-                            </div>
-                                
-                            <div class="ledger-box" style="border-color: #fee2e2; background: #fffafb; display: ${(isAdmin || isFullView) ? 'block' : 'none'};">
-                                <div class="ledger-title" style="cursor:pointer; user-select:none; color:#dc2626;" onclick="document.getElementById('repair_drawer_${gIdx}_${rIdx}').style.display = document.getElementById('repair_drawer_${gIdx}_${rIdx}').style.display === 'none' ? 'block' : 'none'">
-                                    <span>🛠️ 查看修繕事件紀錄</span>
-                                    <span>🔽</span>
-                                </div>
-                                <div id="repair_drawer_${gIdx}_${rIdx}" style="display:none; margin-top:10px;">
-                                    <button style="width:100%; font-size:11px; background:#475569; color:white; border:none; padding:4px; border-radius:4px; cursor:pointer; margin-bottom:6px;" onclick="addRepairLog(${gIdx}, ${rIdx})">＋新增修繕紀錄</button>
-                                    <div>${repairRowsHtml}</div>
-                                </div>
-                            </div>
-
-                            ${actionRow}
-                            ${renewalBarHTML}
-                        </div>
-                    `;
-                });
-
-                groupHtml += `
-                        </div>
-                    </div>
-                `;
-
-                if (roomCardsCount > 0 || currentFilter === 'all' || currentFilter.startsWith('group_')) {
-                    zone.innerHTML += groupHtml;
-                }
-            });
-
-            // 頂部儀表板渲染
-            let dbZone = document.getElementById("dashboard-zone");
-            if (dbZone && (isAdmin || isFullView)) {
-                let totalProperties = 0, vacantCount = 0;
-                activeData.forEach(g => g.rooms.forEach(r => {
-                    totalProperties++;
-                    if (!r.tenant || !r.rentPeriod) vacantCount++;
-                }));
-
-                dbZone.innerHTML = `
-                    <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
-                        <div style="font-size: 13px; color: #64748b; font-weight: 600;">🏢 總託管房源</div>
-                        <div style="font-size: 24px; font-weight: 800; color: #0f172a; margin-top: 5px;">${totalProperties} 間</div>
-                        <div style="font-size: 11px; color: #ea580c; margin-top: 4px;">待租空房：${vacantCount} 間</div>
-                    </div>
-                    <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
-                        <div style="font-size: 13px; color: #64748b; font-weight: 600;">💰 本月應收總額 (${currentYM})</div>
-                        <div style="font-size: 24px; font-weight: 800; color: #2563eb; margin-top: 5px;">$${totalRentExpected.toLocaleString()}</div>
-                        <div style="font-size: 11px; color: #16a34a; margin-top: 4px;">本月實收：$${totalRentCollected.toLocaleString()}</div>
-                    </div>
-                    <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
-                        <div style="font-size: 13px; color: #64748b; font-weight: 600;">🚨 未收租催繳</div>
-                        <div style="font-size: 24px; font-weight: 800; color: #ef4444; margin-top: 5px;">${uncollectedCount} 戶</div>
-                        <div style="font-size: 11px; color: #475569; margin-top: 4px;">催繳完成率：${totalRentExpected ? ((totalRentCollected/totalRentExpected)*100).toFixed(1) : 0}%</div>
-                    </div>
-                `;
-            }
-
-            drawChart();
-
-            if (triggerCloudSave) {
-                saveToCloud();
-            }
-        }
-
-        // ==========================================
-        // 圖表統計函數：加入完善防呆
-        // ==========================================
+        // 🛠️ 升級版：完整支援 2603、06/08、2026/03/15 等全多樣格式解析
         function drawChart() {
             let monthlyCashflow = Array(12).fill(0);
             let activeData = myData[selectedYear] || [];
+            
+            activeData.forEach(g => g.rooms.forEach(r => r.bills.forEach(b => {
+                if (b.paidDate && b.paidDate.trim() !== "") {
+                    let cleaned = b.paidDate.trim();
+                    let mIdx = -1;
 
-            activeData.forEach(g => g.rooms.forEach(r => {
-                if (r.bills) {
-                    r.bills.forEach(b => {
-                        if (b.paidDate && b.paidDate.trim() !== "") {
-                            let parts = b.paidDate.split("/");
-                            let mIdx = -1;
-                            if (parts.length >= 2) {
-                                let mStr = parts.length === 3 ? parts[1] : parts[0];
-                                mIdx = parseInt(mStr) - 1;
-                            }
-                            if (mIdx >= 0 && mIdx < 12) {
-                                let val = Number(b.amount) || 0;
-                                if (!isNaN(val)) {
-                                    monthlyCashflow[mIdx] += val;
+                    // 防呆核心：先檢查是否為純 4 位數數字 (例如 2603)
+                    if (/^\d{4}$/.test(cleaned)) {
+                        let shortYear = "20" + cleaned.substring(0, 2); // "26" -> "2026"
+                        let monthStr = cleaned.substring(2, 4);        // "03" -> "03"
+                        
+                        if (shortYear === selectedYear) {
+                            mIdx = parseInt(monthStr) - 1;
+                        }
+                    } else {
+                        // 如果不是 4 位純數字，則走傳統標準文字日期切分邏輯
+                        let matches = cleaned.match(/\d+/g); 
+                        if (matches && matches.length > 0) {
+                            if (matches.length >= 3) {
+                                // 格式如 "2026/06/08"
+                                let yearStr = matches[0];
+                                let monthStr = matches[1];
+                                if (yearStr === selectedYear || yearStr.endsWith(selectedYear.substring(2))) {
+                                    mIdx = parseInt(monthStr) - 1;
                                 }
+                            } else if (matches.length === 2) {
+                                // 格式如 "06/08"
+                                mIdx = parseInt(matches[0]) - 1;
+                            } else if (matches.length === 1) {
+                                // 格式如 "6月" 或 "6"
+                                mIdx = parseInt(matches[0]) - 1;
                             }
                         }
-                    });
+                    }
+                    
+                    // 月份安全區間與累加
+                    if (mIdx >= 0 && mIdx < 12) {
+                        monthlyCashflow[mIdx] += b.amount;
+                    }
                 }
-            }));
+            })));
 
             let ctx = document.getElementById('revenueChart');
             if (!ctx) return;
@@ -1113,22 +713,320 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) { return '$' + value.toLocaleString(); }
-                            },
-                            grid: { color: '#f1f5f9' }
-                        },
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
                         x: { grid: { display: false } }
                     }
                 }
             });
         }
 
-        window.onload = function() {
-            renderDashboard(true, true);
-        };
+        // 核心渲染主控盤
+        function renderDashboard(triggerSave = true, forceRefreshDropdown = false) {
+            updateFilterDropdown(forceRefreshDropdown); 
+            updateAuthUI(); 
+            
+            let groupZone = document.getElementById("group-zone");
+            let dashZone = document.getElementById("dashboard-zone");
+            let today = new Date();
+            let curYM = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}`;
+            let activeData = myData[selectedYear] || [];
+
+            if (!activeData.length) {
+                dashZone.innerHTML = ""; groupZone.innerHTML = `
+                    <div style="text-align:center; padding:60px; color:#64748b; background:white; border-radius:16px; border:1px dashed #cbd5e1; margin-top:20px;">
+                        <p style="font-size:18px; margin-bottom:12px;">👋 歡迎來到 ${selectedYear} 年度帳本！</p>
+                        ${isAdmin ? `<button class="btn btn-primary" onclick="openGroupModal()">＋ 建立此年度的第一個社區</button>` : `<p style="font-size:14px; color:#2563eb; font-weight:bold;">🔒 請登入管理員以新增社區資產</p>`}
+                    </div>`;
+                drawChart();
+                if(triggerSave) saveToCloud();
+                return;
+            }
+
+            let dashExpected = 0, dashPaid = 0, dashUnpaid = 0;
+            activeData.forEach(g => g.rooms.forEach(r => r.bills.forEach(b => {
+                if (b.name === curYM) {
+                    dashExpected += b.amount;
+                    if (b.paidDate && b.paidDate.trim() !== "") dashPaid += b.amount;
+                    else dashUnpaid += b.amount;
+                }
+            })));
+
+            dashZone.innerHTML = `
+                <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #2563eb; display:flex; flex-direction:column; justify-content:center;">
+                    <div style="font-size: 11px; color: #64748b; font-weight: 600;">本月 (${curYM}) 預期應收</div>
+                    <div style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 4px;">$${dashExpected.toLocaleString()}</div>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #10b981; display:flex; flex-direction:column; justify-content:center;">
+                    <div style="font-size: 11px; color: #64748b; font-weight: 600;">本月 (${curYM}) 實收入帳</div>
+                    <div style="font-size: 18px; font-weight: 700; color: #166534; margin-top: 4px;">$${dashPaid.toLocaleString()}</div>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #ef4444; display:flex; flex-direction:column; justify-content:center;">
+                    <div style="font-size: 11px; color: #64748b; font-weight: 600;">本月 (${curYM}) 剩餘待繳</div>
+                    <div style="font-size: 18px; font-weight: 700; color: #991b1b; margin-top: 4px;">$${dashUnpaid.toLocaleString()}</div>
+                </div>`;
+
+            groupZone.innerHTML = activeData.map((group, gIdx) => {
+                if (currentFilter.startsWith('group_')) {
+                    let targetGIdx = currentFilter.replace('group_', '');
+                    if (String(gIdx) !== targetGIdx) return '';
+                }
+
+                let filteredRooms = group.rooms.filter(room => {
+                    let t = (room.tenant || "").trim();
+                    let p = (room.rentPeriod || "").trim();
+                    let isVacant = t === "" || t.includes("待租") || t === "無" || t === "新租客" || p === "" || !p.includes("~");
+
+                    if (!isAdmin && !isFullView) {
+                        return isVacant;
+                    }
+
+                    if (currentFilter === 'vacant') {
+                        return isVacant;
+                    }
+
+                    if (currentFilter === 'unpaid') {
+                        let mBill = room.bills.find(b => b.name === curYM);
+                        return mBill ? (!mBill.paidDate || mBill.paidDate.trim() === "") : false;
+                    }
+
+                    return true; 
+                });
+
+                if (filteredRooms.length === 0) return '';
+
+                return `
+                <div class="group-section">
+                    <div class="group-header">
+                        <h2 class="group-title">📍 ${group.groupName} (${filteredRooms.length} 個符合房源)
+                            ${isAdmin ? `<button class="group-edit-btn" onclick="openEditGroupModal(${gIdx})">✏️ 編輯名稱</button>` : ''}
+                        </h2>
+                    </div>
+                    <div class="card-container">
+                        ${filteredRooms.map((room, rIdx) => {
+                            let originalRoomIdx = group.rooms.indexOf(room);
+                            let depositHTML = "", monthsHTML = "";
+                            
+                            let leaseMonths = generateLeaseMonths(room.rentPeriod);
+                            
+                            room.bills.forEach((bill, bIdx) => {
+                                let displayName = bill.name;
+                                if(bill.name.startsWith("M") && !bill.name.includes("押金")) {
+                                    let oldMIdx = parseInt(bill.name.substring(1, 3)) - 1;
+                                    if(oldMIdx >= 0 && oldMIdx < leaseMonths.length) {
+                                        displayName = leaseMonths[oldMIdx];
+                                        bill.name = displayName; 
+                                    }
+                                }
+
+                                let isPaid = bill.paidDate && bill.paidDate.trim() !== "";
+                                let cursorStyle = isAdmin ? 'cursor: pointer;' : 'cursor: default;';
+                                let badge = `<span class="status-badge ${isPaid ? 'status-paid' : 'status-unpaid'}" style="${cursorStyle}" onclick="changePaidDate(${gIdx},${originalRoomIdx},${bIdx})">${isPaid ? bill.paidDate : '未收'}</span>`;
+                                
+                                if(!isPaid && !bill.name.includes("押金")) {
+                                    badge += ` <button class="action-btn" style="color:#06b6d4; font-size:12px; font-weight:bold;" onclick="event.stopPropagation(); copyLineMessage('${room.tenant}', '${room.number}', '${displayName}', ${bill.amount})">💬</button>`;
+                                }
+                                if (bill.name.includes("押金")) {
+                                    depositHTML = `<div class="extra-row"><span>${bill.name}: <strong>$${bill.amount.toLocaleString()}</strong></span>${badge}</div>`;
+                                } else {
+                                    let borderStyle = (displayName === curYM) ? 'border: 1px solid #2563eb; background: #eff6ff;' : '';
+                                    monthsHTML += `<div class="bill-row" style="${borderStyle}"><span>${displayName}: <strong>$${bill.amount.toLocaleString()}</strong></span>${badge}</div>`;
+                                }
+                            });
+
+                            let expiry = checkLeaseExpiry(room.rentPeriod);
+                            let repairsHTML = (room.repairs || []).map((rep, repIdx) => `
+                                <div style="display:flex; justify-content:space-between; font-size:11px; background:#f1f5f9; padding:4px 6px; border-radius:4px; margin-bottom:4px; color:#475569;">
+                                    <span>🛠️ ${rep.date} ${rep.name} (<strong>$${rep.cost.toLocaleString()}</strong>)</span>
+                                    ${isAdmin ? `<button style="border:none; background:none; color:#ef4444; cursor:pointer;" onclick="event.stopPropagation(); deleteRepairLog(${gIdx},${originalRoomIdx},${repIdx})">✕</button>` : ''}
+                                </div>
+                            `).join("");
+
+                            return `
+                                <div class="${expiry.warning ? 'room-card expiry-warning' : 'room-card'}">
+                                    ${isAdmin ? `
+                                    <div class="card-actions">
+                                        <button class="action-btn edit-btn" onclick="openEditRoomModal(${gIdx},${originalRoomIdx})">✏️</button>
+                                        <button class="action-btn delete-btn" onclick="deleteRoom(${gIdx},${originalRoomIdx})">✕</button>
+                                    </div>` : ''}
+                                    <div class="room-number">🚪 ${room.number} 室</div>
+                                    <div class="info-text">👤 租客: <strong>${room.tenant}</strong></div>
+                                    <div class="info-text">📅 租期: ${room.rentPeriod}</div>
+                                    ${expiry.text ? `<div class="expiry-badge">${expiry.text}</div>` : ''}
+                                    ${room.memo && room.memo.trim() ? `<div class="memo-badge">📝 備註: ${room.memo}</div>` : ''}
+                                    <div class="ledger-box">
+                                        <div class="ledger-title">📋 每月收費結構</div>
+                                        <ul class="memo-text">${(room.details || []).map(d => `<li>${d}</li>`).join("")}</ul>
+                                        
+                                        <div class="ledger-title">🛠️ 修繕與事件紀錄簿 ${isAdmin ? `<button style="color:#2563eb; background:none; border:none; cursor:pointer; font-weight:bold; font-size:11px;" onclick="addRepairLog(${gIdx},${originalRoomIdx})">＋新增</button>` : ''}</div>
+                                        <div style="max-height:80px; overflow-y:auto; margin-bottom:10px;">${repairsHTML || '<div style="font-size:11px; color:#94a3b8; text-align:center;">暫無紀錄</div>'}</div>
+
+                                        <div class="ledger-title">💵 單次收費項目</div>${depositHTML}
+                                        <div class="ledger-title" style="margin-top:10px;">📅 合約實收現金流 (入帳日)</div>
+                                        <div class="bill-grid">${monthsHTML}</div>
+                                    </div>
+                                </div>`;
+                        }).join("")}
+                    </div>
+                </div>`;
+            }).join("");
+            
+            if (isAdmin || isFullView) drawChart();
+            if(triggerSave) saveToCloud();
+        }
+
+        function changePaidDate(gIdx, rIdx, bIdx) {
+            if (!checkPermission()) return;
+            let bill = myData[selectedYear][gIdx].rooms[rIdx].bills[bIdx];
+            let newDate = prompt("請輸入入帳日期：\n(支援簡寫如 2603 代表 2026 年 3 月)", bill.paidDate || "");
+            if (newDate === null) return;
+            bill.paidDate = newDate.trim();
+            renderDashboard(true, false); 
+        }
+
+        function addCustomBillItem() {
+            let name = document.getElementById("customName").value, amt = document.getElementById("customAmount").value;
+            if (!name || !amt) return alert("請填寫項目名稱與金額！");
+            tempCustomBills.push({ name, amount: Number(amt) });
+            document.getElementById("customListVisual").innerHTML = tempCustomBills.map(item => `<li>${item.name}: (每月 +${item.amount.toLocaleString()})</li>`).join("");
+            document.getElementById("customName").value = ""; document.getElementById("customAmount").value = "";
+        }
+
+        function openGroupModal() { 
+            if (!checkPermission()) return;
+            document.getElementById("groupModalTitle").innerText = "📍 新增社區群組";
+            document.getElementById("submitGroupBtn").innerText = "確定建立";
+            document.getElementById("editGroupIndexFlag").value = ""; 
+            document.getElementById("inputGroupName").value = "";
+            document.getElementById("groupModal").style.display = "flex"; 
+        }
+
+        function openEditGroupModal(gIdx) {
+            if (!checkPermission()) return;
+            document.getElementById("groupModalTitle").innerText = "✏️ 編輯社區名稱";
+            document.getElementById("submitGroupBtn").innerText = "儲存修改";
+            document.getElementById("editGroupIndexFlag").value = gIdx; 
+            document.getElementById("inputGroupName").value = myData[selectedYear][gIdx].groupName;
+            document.getElementById("groupModal").style.display = "flex";
+        }
+
+        function closeGroupModal() { document.getElementById("groupModal").style.display = "none"; }
+        
+        function openRoomModal() {
+            if (!checkPermission()) return;
+            let activeData = myData[selectedYear] || [];
+            if (!activeData.length) return alert("請先建立社區！");
+            document.getElementById("selectGroup").innerHTML = activeData.map((g, i) => `<option value="${i}">${g.groupName}</option>`).join("");
+            document.getElementById("roomModalTitle").innerText = "🚪 新增房源與財務設定";
+            document.getElementById("submitRoomBtn").innerText = "確認新增";
+            document.getElementById("editGroupIndex").value = ""; document.getElementById("editRoomIndex").value = "";
+            document.getElementById("customItemBoxSection").style.opacity = "1";
+            document.getElementById("customItemBoxSection").style.pointerEvents = "auto";
+            tempCustomBills = []; document.getElementById("customListVisual").innerHTML = "";
+            document.getElementById("inputRoomNumber").value = ""; document.getElementById("inputTenant").value = "";
+            document.getElementById("inputMemo").value = ""; document.getElementById("inputRent").value = "12000";
+            document.getElementById("inputDeposit").value = "24000"; document.getElementById("inputManage").value = "0";
+            document.getElementById("inputParking").value = "0"; document.getElementById("inputPet").value = "0";
+            document.getElementById("calcPrev").value = ""; document.getElementById("calcCurr").value = "";
+            document.getElementById("roomModal").style.display = "flex";
+        }
+
+        function openEditRoomModal(gIdx, rIdx) {
+            if (!checkPermission()) return;
+            let room = myData[selectedYear][gIdx].rooms[rIdx];
+            openRoomModal(); 
+            document.getElementById("roomModalTitle").innerText = `✏️ 編輯 🚪 ${room.number} 室 房源財務`;
+            document.getElementById("submitRoomBtn").innerText = "儲存修改";
+            document.getElementById("editGroupIndex").value = gIdx; document.getElementById("editRoomIndex").value = rIdx;
+            document.getElementById("customItemBoxSection").style.opacity = "0.5";
+            document.getElementById("customItemBoxSection").style.pointerEvents = "none";
+            document.getElementById("selectGroup").value = gIdx;
+            document.getElementById("inputRoomNumber").value = room.number; document.getElementById("inputTenant").value = room.tenant;
+            document.getElementById("inputPeriod").value = room.rentPeriod; document.getElementById("inputMemo").value = room.memo || "";
+            document.getElementById("inputRent").value = room.rent || 12000; document.getElementById("inputDeposit").value = room.deposit !== undefined ? room.deposit : 24000;
+            document.getElementById("inputManage").value = room.manage || 0; document.getElementById("inputParking").value = room.parking || 0;
+            document.getElementById("inputPet").value = room.pet || 0;
+        }
+
+        function closeRoomModal() { document.getElementById("roomModal").style.display = "none"; }
+
+        function submitGroup() {
+            if (!checkPermission()) return;
+            let name = document.getElementById("inputGroupName").value;
+            if(!name) return alert("請輸入名稱");
+            let flag = document.getElementById("editGroupIndexFlag").value;
+            if (!myData[selectedYear]) myData[selectedYear] = [];
+            
+            if (flag !== "") { myData[selectedYear][flag].groupName = name; } else { myData[selectedYear].push({ groupName: name, rooms: [] }); }
+            renderDashboard(true, true); 
+            closeGroupModal();
+        }
+
+        function submitRoom() {
+            if (!checkPermission()) return;
+            let gIdx = document.getElementById("selectGroup").value, num = document.getElementById("inputRoomNumber").value;
+            if(!num) return alert("請輸入房號");
+            
+            let tenant = document.getElementById("inputTenant").value || "待租中", rent = Number(document.getElementById("inputRent").value);
+            let deposit = Number(document.getElementById("inputDeposit").value), period = document.getElementById("inputPeriod").value;
+            let memo = document.getElementById("inputMemo").value, manage = Number(document.getElementById("inputManage").value) || 0;
+            let parking = Number(document.getElementById("inputParking").value) || 0, pet = Number(document.getElementById("inputPet").value) || 0;
+
+            let oldGIdx = document.getElementById("editGroupIndex").value, oldRIdx = document.getElementById("editRoomIndex").value;
+            let isEdit = oldGIdx !== "" && oldRIdx !== "";
+
+            let monthlyTotal = rent + manage + parking + pet;
+            let details = [`基本租金: $${rent.toLocaleString()}`];
+            if (manage > 0) details.push(`管理費: $${manage.toLocaleString()}`);
+            if (parking > 0) details.push(`車位費: $${parking.toLocaleString()}`);
+            if (pet > 0) details.push(`寵物費: $${pet.toLocaleString()}`);
+
+            let customTotal = 0;
+            if (isEdit) {
+                customTotal = myData[selectedYear][oldGIdx].rooms[oldRIdx].customTotal || 0;
+                monthlyTotal += customTotal;
+                let oldCustom = (myData[selectedYear][oldGIdx].rooms[oldRIdx].details || []).filter(d => !d.includes("基本租金") && !d.includes("管理費") && !d.includes("車位費") && !d.includes("寵物費"));
+                details = details.concat(oldCustom);
+            } else {
+                tempCustomBills.forEach(item => {
+                    monthlyTotal += item.amount; customTotal += item.amount;
+                    details.push(`${item.name}: $${item.amount.toLocaleString()}`);
+                });
+            }
+
+            let bills = [];
+            if (deposit > 0) {
+                let oldDepDate = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => b.name.includes("押金"))?.paidDate || "") : "";
+                bills.push({ name: "🤝 房屋押金", amount: deposit, paidDate: oldDepDate });
+            }
+
+            let leaseMonths = generateLeaseMonths(period);
+            for (let i = 0; i < 12; i++) {
+                let mName = leaseMonths[i]; 
+                let oldDate = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].bills.find(b => b.name === mName)?.paidDate || "") : "";
+                bills.push({ name: mName, amount: monthlyTotal, paidDate: oldDate });
+            }
+
+            let repairs = isEdit ? (myData[selectedYear][oldGIdx].rooms[oldRIdx].repairs || []) : [];
+            let roomObj = { number: num, tenant, rentPeriod: period, memo, rent, deposit, manage, parking, pet, customTotal, details, bills, repairs };
+
+            if (isEdit) {
+                if (oldGIdx != gIdx) { myData[selectedYear][oldGIdx].rooms.splice(oldRIdx, 1); myData[selectedYear][gIdx].rooms.push(roomObj); } 
+                else { myData[selectedYear][gIdx].rooms[oldRIdx] = roomObj; }
+            } else { myData[selectedYear][gIdx].rooms[push](roomObj); }
+
+            renderDashboard(true, false); 
+            closeRoomModal();
+        }
+
+        function deleteRoom(gIdx, rIdx) {
+            if (!checkPermission()) return;
+            if(confirm("確定刪除？")) { 
+                myData[selectedYear][gIdx].rooms.splice(rIdx, 1); 
+                renderDashboard(true, true); 
+            }
+        }
+
+        renderDashboard(false, true);
     </script>
 </body>
 </html>
