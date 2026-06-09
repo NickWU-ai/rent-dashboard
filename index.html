@@ -17,10 +17,8 @@
         .group-edit-btn { background: none; border: none; color: #2563eb; cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
         .group-edit-btn:hover { background-color: #eff6ff; }
         
-        /* RWD 彈性網格佈局 */
         .card-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
         
-        /* 房源卡片與到期警告樣式 */
         .room-card { background-color: #f8fafc; border-radius: 12px; padding: 20px; position: relative; border: 1px solid #e2e8f0; transition: all 0.2s; box-sizing: border-box; }
         .room-card.expiry-warning { border: 2px solid #f97316 !important; background-color: #fff7ed !important; }
         .expiry-badge { background-color: #ffedd5; color: #ea580c; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 6px; display: inline-block; border: 1px solid #fed7aa; }
@@ -59,7 +57,6 @@
         .spinner { border: 4px solid #e2e8f0; border-top: 4px solid #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* 修繕列表樣式 */
         .repair-item { font-size: 12px; display: flex; justify-content: space-between; align-items: center; background: #fff1f2; color: #9f1239; border: 1px solid #fecdd3; padding: 6px; border-radius: 6px; margin-top: 4px; }
 
         @media (max-width: 768px) {
@@ -198,7 +195,7 @@
             </div>
 
             <div class="form-group">
-                <label>⚡ 獨立水電費計算機 (自動匯入臨時特殊月費)</label>
+                <label>⚡ 獨立水電費計算機</label>
                 <div class="custom-item-box" style="background-color: #f0fdf4; border-color: #bbf7d0; margin-bottom: 10px;">
                     <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 0.8fr; gap: 6px; margin-bottom: 8px;">
                         <input type="text" id="calcName" value="電費" style="padding:6px;">
@@ -603,7 +600,7 @@
             newAmount = Number(newAmount);
             if (isNaN(newAmount)) return alert("請輸入有效的數字！");
 
-            let newDate = prompt(`✍️ 修改 [${bill.name}] 的入帳收租日期 (格式範例: 2026/06/10，若未繳請留空)：`, bill.paidDate || "");
+            let newDate = prompt(`✍️ 修改 [${bill.name}] 的入帳收租日期\n(支援格式如：2603、2026/03/10，未繳請留空)：`, bill.paidDate || "");
             if (newDate === null) return;
 
             bill.amount = newAmount;
@@ -750,9 +747,9 @@
             if (gIdx !== null && rIdx !== null) {
                 document.getElementById("roomModalTitle").innerText = "🚪 編輯房源合約與財務參數";
                 let rm = myData[selectedYear][gIdx].rooms[rIdx];
-                document.getElementById("editGroupIndex").value = gIdx;
-                document.getElementById("editRoomIndex").value = rIdx;
-                groupSelect.value = gIdx;
+                document.getElementById("editGroupIndex").value = String(gIdx);
+                document.getElementById("editRoomIndex").value = String(rIdx);
+                groupSelect.value = String(gIdx);
                 document.getElementById("inputRoomNumber").value = rm.number;
                 document.getElementById("inputTenant").value = rm.tenant || "";
                 document.getElementById("inputPeriod").value = rm.rentPeriod || "";
@@ -805,9 +802,12 @@
             let pet = Number(document.getElementById("inputPet").value) || 0;
 
             if (!num) return alert("房間號碼為必填欄位！");
-            let isEdit = document.getElementById("editRoomIndex").value !== "";
+            
+            let editRoomIndexRaw = document.getElementById("editRoomIndex").value;
+            let isEdit = (editRoomIndexRaw !== "");
+            
             let oldGIdx = isEdit ? parseInt(document.getElementById("editGroupIndex").value) : null;
-            let oldRIdx = isEdit ? parseInt(document.getElementById("editRoomIndex").value) : null;
+            let oldRIdx = isEdit ? parseInt(editRoomIndexRaw) : null;
 
             let customTotal = tempCustomBills.reduce((acc, cur) => acc + cur.amount, 0);
             let details = [...tempCustomBills];
@@ -817,7 +817,6 @@
             if (isEdit) {
                 let oldRoom = myData[selectedYear][oldGIdx].rooms[oldRIdx];
                 bills = oldRoom.bills ? [...oldRoom.bills] : [];
-                // 如果修改了月總租金，同步更新未繳帳單的金額
                 bills.forEach(b => {
                     if(!b.paidDate) b.amount = monthlyTotal;
                 });
@@ -856,9 +855,6 @@
             }
         }
 
-        // ==========================================
-        // 新增功能：房間在所屬社區內移動順序[cite: 4]
-        // ==========================================
         function moveRoom(gIdx, rIdx, direction) {
             if (!checkPermission()) return;
             let activeData = myData[selectedYear] || [];
@@ -867,9 +863,7 @@
             let rooms = activeData[gIdx].rooms;
             let targetIdx = rIdx + direction;
             
-            // 限制邊界範圍
             if (targetIdx >= 0 && targetIdx < rooms.length) {
-                // 交換陣列元素位置
                 let temp = rooms[rIdx];
                 rooms[rIdx] = rooms[targetIdx];
                 rooms[targetIdx] = temp;
@@ -880,8 +874,54 @@
         }
 
         // ==========================================
-        // 核心渲染函式：儀表板與卡片渲染
+        // 精準日期解析核心功能：極速相容 2603、202603 等無分隔號格式
         // ==========================================
+        function parsePaidDate(dateStr) {
+            if (!dateStr) return { year: "", month: -1 };
+            let clean = dateStr.trim().replace(/[-\/.]/g, ""); // 移除 - / . 等符號
+
+            // 處理純數字形式如 2603 或 260315
+            if (/^\d+$/.test(clean)) {
+                if (clean.length === 4) { // 範例: 2603
+                    let yy = clean.substring(0, 2);
+                    let mm = clean.substring(2, 4);
+                    return { year: "20" + yy, month: parseInt(mm) - 1 };
+                }
+                if (clean.length === 6) { // 範例: 202603 或 260315
+                    let firstTwo = parseInt(clean.substring(0, 2));
+                    if (firstTwo === 20) { // 這是 202603
+                        let yyyy = clean.substring(0, 4);
+                        let mm = clean.substring(4, 6);
+                        return { year: yyyy, month: parseInt(mm) - 1 };
+                    } else { // 這是 260315
+                        let yy = clean.substring(0, 2);
+                        let mm = clean.substring(2, 4);
+                        return { year: "20" + yy, month: parseInt(mm) - 1 };
+                    }
+                }
+                if (clean.length === 8) { // 範例: 20260315
+                    let yyyy = clean.substring(0, 4);
+                    let mm = clean.substring(4, 6);
+                    return { year: yyyy, month: parseInt(mm) - 1 };
+                }
+            }
+
+            // 標準斜線/橫線切分邏輯 (如 2026/03/15)
+            let parts = dateStr.split(/[-\/.]/);
+            if (parts.length === 3) {
+                return { year: parts[0].trim(), month: parseInt(parts[1].trim()) - 1 };
+            }
+            if (parts.length === 2) {
+                if (parts[0].trim().length === 4) {
+                    return { year: parts[0].trim(), month: parseInt(parts[1].trim()) - 1 };
+                } else {
+                    return { year: selectedYear, month: parseInt(parts[0].trim()) - 1 };
+                }
+            }
+
+            return { year: "", month: -1 };
+        }
+
         function renderDashboard(triggerCloudSave = true, forceRefreshDropdown = false) {
             updateAuthUI();
             updateFilterDropdown(forceRefreshDropdown);
@@ -954,7 +994,7 @@
                         room.bills.forEach((b, bIdx) => {
                             let bAmt = Number(b.amount) || 0;
                             let statusClass = b.paidDate ? "status-badge status-paid" : "status-badge status-unpaid";
-                            let statusTxt = b.paidDate ? `已入帳(${b.paidDate.substring(5)})` : "未入帳";
+                            let statusTxt = b.paidDate ? `已入帳(${b.paidDate})` : "未入帳";
                             
                             let highlightStyle = (b.name === currentYM) ? 'style="background: #fef08a; border: 1px solid #facc15;"' : '';
                             
@@ -1054,7 +1094,6 @@
                 }
             });
 
-            // 頂部儀表板渲染
             let dbZone = document.getElementById("dashboard-zone");
             if (dbZone && (isAdmin || isFullView)) {
                 let totalProperties = 0, vacantCount = 0;
@@ -1089,9 +1128,6 @@
             }
         }
 
-        // ==========================================
-        // 圖表統計函數：精準核對付款年份與月份
-        // ==========================================
         function drawChart() {
             let monthlyCashflow = Array(12).fill(0);
             let activeData = myData[selectedYear] || [];
@@ -1100,28 +1136,13 @@
                 if (r.bills) {
                     r.bills.forEach(b => {
                         if (b.paidDate && b.paidDate.trim() !== "") {
-                            let parts = b.paidDate.split("/");
-                            let year = "";
-                            let month = -1;
+                            let parsed = parsePaidDate(b.paidDate);
                             
-                            if (parts.length === 3) {
-                                year = parts[0].trim();
-                                month = parseInt(parts[1].trim()) - 1;
-                            } else if (parts.length === 2) {
-                                if (parts[0].trim().length === 4) {
-                                    year = parts[0].trim();
-                                    month = parseInt(parts[1].trim()) - 1;
-                                } else {
-                                    year = selectedYear;
-                                    month = parseInt(parts[0].trim()) - 1;
-                                }
-                            }
-                            
-                            // 精準核對：必須是當前選擇年度的付款才會計入圖表
-                            if (year === selectedYear && month >= 0 && month < 12) {
+                            // 精準核對付款年度是否為當前選取的年度
+                            if (parsed.year === selectedYear && parsed.month >= 0 && parsed.month < 12) {
                                 let val = Number(b.amount) || 0;
                                 if (!isNaN(val)) {
-                                    monthlyCashflow[month] += val;
+                                    monthlyCashflow[parsed.month] += val;
                                 }
                             }
                         }
